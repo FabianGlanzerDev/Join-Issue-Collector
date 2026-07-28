@@ -1,0 +1,6 @@
+.DS_Store
+Thumbs.db
+.vscode/
+out/
+node_modules/
+/scripts/firebaseConfig.js
