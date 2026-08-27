@@ -123,7 +123,7 @@ function getAddTaskCategoryTemplate() {
         <div class="dropdown-list dialog-field-group"><label for="category">Category<span class="required-marker">*</span></label>
             <div class="input-wrapper"><input id="category" placeholder="Select task category" readonly>
                 <img class="input-icon" src="../assets/icons/arrowDropdown.webp" alt="">
-                <div class="dropdown-content"><a href="#" data-category="Technical Task">Technical Task</a><a href="#" data-category="User Story">User Story</a></div>
+                <div class="dropdown-content"><a href="#" data-category="Technical Task">Technical Task</a><a href="#" data-category="User Story">User Story</a><a href="#" data-category="Bug Request">Bug Request</a></div>
             </div><div class="error-message" id="categoryError"></div>
         </div>
     `;

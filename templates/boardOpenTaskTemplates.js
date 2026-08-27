@@ -17,6 +17,9 @@ function getOpenTaskDialogTemplate(task) {
                     <div class="open-task-row open-task-due-date"><span>Due date:</span><span>${task.dueDate}</span></div>
                     <div class="open-task-row"><span>Priority:</span><span class="open-task-priority">${task.priorityLabel}
                         <img src="../assets/icons/${task.priorityIcon}" alt=""></span></div>
+                    <div class="open-task-row"><span>Creator:</span><span>${task.creator}</span></div>
+                    <div class="open-task-row"><span>Creator type:</span><span class="creator-type ${task.creatorTypeClass}">${task.creatorType}</span></div>
+                    <div class="open-task-row"><span>Source:</span><span class="task-source ${task.sourceClass}">${task.sourceLabel}</span></div>
                     <div class="open-task-section"><span>Assigned To:</span><div class="open-task-contacts">${task.contacts}</div></div>
                     <div class="open-task-section"><span>Subtasks</span><div class="open-task-subtasks">${task.subtasks}</div></div>
                 </div>

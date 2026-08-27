@@ -243,6 +243,36 @@
     background: var(--profile-turquoise);
 }
 
+.open-task-category.bug-request {
+    background: var(--profile-red);
+}
+
+.creator-type,
+.task-source {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+}
+
+.creator-type.internal,
+.task-source.manual-created {
+    background: var(--ui-light-hover);
+    color: var(--text-secondary);
+}
+
+.creator-type.external,
+.task-source.ai-generated {
+    background: var(--profile-purple);
+    color: var(--text-white);
+}
+
+.creator-type.unknown {
+    background: var(--no-task-placeholder-bg);
+    color: var(--no-task-placeholder-text);
+}
+
 @media (width <= 1024px) and (hover: none) and (pointer: coarse) {
     .task-dialog-backdrop {
         inset: 0;

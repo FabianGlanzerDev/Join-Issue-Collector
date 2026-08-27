@@ -60,7 +60,7 @@
                                 <img class="search-icon" src="../assets/icons/searchIcon.webp" alt="" />
                             </span>
                         </label>
-                        <button class="add-task-button" type="button" data-task-column="todo">
+                        <button class="add-task-button" type="button" data-task-column="triage">
                             <span class="add-task-label">Add task</span>
                             <span class="add-task-plus" aria-hidden="true">+</span>
                         </button>
@@ -70,11 +70,18 @@
                 <article class="board-columns">
                     <div class="board-column">
                         <div class="column-header">
-                            <h2>To do</h2>
-                            <button class="add-column-task" type="button" data-task-column="todo"
-                                aria-label="Add task to To do">
+                            <h2>Triage</h2>
+                            <button class="add-column-task" type="button" data-task-column="triage"
+                                aria-label="Add task to Triage">
                                 <img src="../assets/icons/addColumnTask.webp" alt="" />
                             </button>
+                        </div>
+                        <div class="task-list" id="triageTasks"></div>
+                    </div>
+
+                    <div class="board-column">
+                        <div class="column-header">
+                            <h2>To do</h2>
                         </div>
                         <div class="task-list" id="toDoTasks"></div>
                     </div>
@@ -82,10 +89,6 @@
                     <div class="board-column">
                         <div class="column-header">
                             <h2>In progress</h2>
-                            <button class="add-column-task" type="button" data-task-column="inprogress"
-                                aria-label="Add task to In progress">
-                                <img src="../assets/icons/addColumnTask.webp" alt="" />
-                            </button>
                         </div>
                         <div class="task-list" id="inProgressTasks"></div>
                     </div>
@@ -93,10 +96,6 @@
                     <div class="board-column">
                         <div class="column-header">
                             <h2>Await feedback</h2>
-                            <button class="add-column-task" type="button" data-task-column="awaitfeedback"
-                                aria-label="Add task to Await feedback">
-                                <img src="../assets/icons/addColumnTask.webp" alt="" />
-                            </button>
                         </div>
                         <div class="task-list" id="awaitFeedbackTasks"></div>
                     </div>

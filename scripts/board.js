@@ -1,4 +1,5 @@
 const boardColumns = {
+    triage: { elementId: "triageTasks", label: "Triage" },
     todo: { elementId: "toDoTasks", label: "To do" },
     inprogress: { elementId: "inProgressTasks", label: "In progress" },
     awaitfeedback: { elementId: "awaitFeedbackTasks", label: "Await feedback" },
@@ -158,7 +159,9 @@ function getTaskPriority(priority) {
  * @returns {string} The category class.
  */
 function getTaskCategoryClass(category) {
-    return category === "User Story" ? "user-story" : "technical-task";
+    if (category === "User Story") return "user-story";
+    if (category === "Bug Request") return "bug-request";
+    return "technical-task";
 }
 
 

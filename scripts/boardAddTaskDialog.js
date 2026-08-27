@@ -283,8 +283,9 @@ function getBoardTaskDialogData() {
     const dialog = document.getElementById("addTaskDialog");
     const task = getBasicDialogTaskData(dialog);
     task.assignedTo = getDialogAssignments(dialog);
-    task.column = dialog.dataset.taskColumn;
+    task.column = "triage";
     task.order = Date.now();
+    Object.assign(task, getManualTaskMetadata());
     if (dialogSubtasks.length) task.subtasks = getDialogSubtasksData();
     return task;
 }

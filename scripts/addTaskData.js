@@ -45,8 +45,9 @@ function getTaskFormData() {
         priority: document.querySelector('input[name="priority"]:checked').value,
         category: categoryInput.value.trim(),
         assignedTo: getAssignedContacts(),
-        column: "todo",
-        order: Date.now()
+        column: "triage",
+        order: Date.now(),
+        ...getManualTaskMetadata()
     };
     return addSubtasksToTask(task, getSubtasksData());
 }

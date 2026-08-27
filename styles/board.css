@@ -10,7 +10,7 @@
     flex-direction: column;
     gap: 48px;
     width: 100%;
-    max-width: 1208px;
+    max-width: 1440px;
     min-height: 0;
     font-family: Inter, sans-serif;
     line-height: 120%;
@@ -148,7 +148,7 @@
     display: grid;
     flex: 1;
     gap: 16px;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     min-height: 0;
 }
 
@@ -315,6 +315,10 @@
 
 .technical-task {
     background: var(--profile-turquoise);
+}
+
+.bug-request {
+    background: var(--profile-red);
 }
 
 .task-progress {

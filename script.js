@@ -169,6 +169,23 @@ function getActiveUser() {
 
 
 /**
+ * Gets creator metadata for a task created manually inside Join.
+ * @returns {Object} The creator and source metadata.
+ */
+function getManualTaskMetadata() {
+    const activeUser = getActiveUser() || {};
+
+    return {
+        creatorId: activeUser.id || "",
+        creatorName: activeUser.name || "",
+        creatorEmail: activeUser.email || "",
+        creatorType: "internal",
+        aiGenerated: false
+    };
+}
+
+
+/**
  * Removes the active user from local storage.
  */
 function clearActiveUser() {

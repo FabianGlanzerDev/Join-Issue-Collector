@@ -128,8 +128,54 @@ function getOpenTaskView(task) {
         category: escapeBoardHtml(task.category), categoryClass: getTaskCategoryClass(task.category),
         dueDate: getOpenTaskDate(task.dueDate), priorityLabel: priority[0].toUpperCase() + priority.slice(1),
         priorityIcon: `${priority}Priority.webp`, contacts: getOpenTaskContacts(task.assignedTo),
-        subtasks: getOpenTaskSubtasks(task.subtasks)
+        subtasks: getOpenTaskSubtasks(task.subtasks), ...getTaskCreatorView(task)
     };
+}
+
+
+/**
+ * Prepares creator and source information for the task detail dialog.
+ * @param {Object} task - The saved task data.
+ * @returns {Object} The creator view data.
+ */
+function getTaskCreatorView(task) {
+    const type = getTaskCreatorType(task.creatorType);
+    const creator = getTaskCreatorDisplay(task);
+
+    return {
+        creator: escapeBoardHtml(creator),
+        creatorType: type.label,
+        creatorTypeClass: type.className,
+        sourceLabel: task.aiGenerated === true ? "AI generated" : "Created in Join",
+        sourceClass: task.aiGenerated === true ? "ai-generated" : "manual-created"
+    };
+}
+
+
+/**
+ * Gets a readable creator display value.
+ * @param {Object} task - The saved task data.
+ * @returns {string} The creator display text.
+ */
+function getTaskCreatorDisplay(task) {
+    const name = String(task.creatorName || "").trim();
+    const email = String(task.creatorEmail || "").trim();
+
+    if (name && email) return `${name} · ${email}`;
+    return name || email || "Not specified";
+}
+
+
+/**
+ * Normalizes saved creator types for current and imported tasks.
+ * @param {string} creatorType - The stored creator type.
+ * @returns {Object} The visible label and CSS class.
+ */
+function getTaskCreatorType(creatorType) {
+    const type = normalizeText(creatorType);
+    if (["external", "extern"].includes(type)) return { label: "External", className: "external" };
+    if (["internal", "member"].includes(type)) return { label: "Internal", className: "internal" };
+    return { label: "Not specified", className: "unknown" };
 }
 
 
