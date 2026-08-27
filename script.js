@@ -174,13 +174,17 @@ function getActiveUser() {
  */
 function getManualTaskMetadata() {
     const activeUser = getActiveUser() || {};
+    const timestamp = new Date().toISOString();
 
     return {
         creatorId: activeUser.id || "",
         creatorName: activeUser.name || "",
         creatorEmail: activeUser.email || "",
         creatorType: "internal",
-        aiGenerated: false
+        aiGenerated: false,
+        source: "join",
+        createdAt: timestamp,
+        updatedAt: timestamp
     };
 }
 

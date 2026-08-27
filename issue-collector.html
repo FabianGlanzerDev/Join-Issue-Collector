@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+        content="Choose how you want to use Join: submit an email request as a stakeholder or log in as a team member." />
+    <title>Join Issue Collector</title>
+
+    <link rel="shortcut icon" href="./assets/icons/favicon.webp" type="image/x-icon" />
+    <link rel="stylesheet" href="./styles/variables.css" />
+    <link rel="stylesheet" href="./styles/fonts.css" />
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./styles/issueCollector.css" />
+</head>
+
+<body class="collector-page collector-welcome-page">
+    <main class="collector-role-main" aria-labelledby="collectorWelcomeTitle">
+        <section class="collector-role-card">
+            <header class="collector-role-header">
+                <h1 id="collectorWelcomeTitle">Welcome</h1>
+                <span class="collector-title-line" aria-hidden="true"></span>
+                <p>Pick the option that suits your role: create a request as a stakeholder or log in if you’re part of the team.</p>
+            </header>
+
+            <div class="collector-role-options">
+                <article class="collector-role-option">
+                    <div class="collector-role-label">
+                        <img class="collector-role-icon" src="./assets/icons/stakeholder.svg" alt=""
+                            aria-hidden="true" />
+                        <span>Are you a stakeholder?</span>
+                    </div>
+                    <a class="collector-role-button collector-role-button-primary" href="./stakeholder.html">Create request</a>
+                </article>
+
+                <article class="collector-role-option">
+                    <div class="collector-role-label">
+                        <img class="collector-role-icon" src="./assets/icons/work.svg" alt=""
+                            aria-hidden="true" />
+                        <span>Are you a team member?</span>
+                    </div>
+                    <a class="collector-role-button collector-role-button-secondary" href="./index.html">Member log in</a>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <footer class="collector-simple-footer">
+        <a href="./subpages/privacyPolicy.html">Privacy Policy</a>
+        <a href="./subpages/legalNotice.html">Legal notice</a>
+    </footer>
+</body>
+
+</html>

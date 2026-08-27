@@ -317,9 +317,11 @@ async function moveTaskToPosition(taskId, targetColumn, targetIndex) {
     if (!boardColumns[targetColumn]) return;
     const task = boardTasks.find((task) => task.id === taskId);
     if (!task) return;
+    const previousColumn = task.column;
     task.column = targetColumn;
     const targetTasks = getReorderedColumnTasks(task, targetColumn, targetIndex);
-    await persistColumnOrder(targetColumn, targetTasks, taskId);
+    await persistColumnOrder(targetColumn, targetTasks, taskId, previousColumn);
+    await queueStatusNotification(task, previousColumn, targetColumn);
     renderBoardTasks(boardTasks, boardContacts);
     showBoardStatusMessage(`Task moved to ${boardColumns[targetColumn].label}.`);
 }
@@ -357,19 +359,32 @@ function getSortedColumnTasks(column) {
  * @param {string} column - The target column.
  * @param {Array} tasks - The target column tasks in their new order.
  * @param {string} movedTaskId - The id of the moved task.
+ * @param {string} previousColumn - The column before the move.
  */
-async function persistColumnOrder(column, tasks, movedTaskId) {
+async function persistColumnOrder(column, tasks, movedTaskId, previousColumn) {
     const updates = {};
+    const timestamp = new Date().toISOString();
 
     tasks.forEach((task) => { updates[`${task.id}/order`] = task.order; });
     updates[`${movedTaskId}/column`] = column;
+    updates[`${movedTaskId}/updatedAt`] = timestamp;
+    if (previousColumn !== column) updates[`${movedTaskId}/statusChangedAt`] = timestamp;
 
     const response = await fetch(getTasksUrl(), {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates)
     });
     ensureSuccessfulResponse(response, "Task position could not be saved.");
+}
+
+
+/** Queues a status-change notification without undoing a successful board move. */
+async function queueStatusNotification(task, fromColumn, toColumn) {
+    try {
+        await createTaskStatusEvent(task, fromColumn, toColumn);
+    } catch (error) {
+        console.error("Status notification could not be queued.", error);
+    }
 }
 
 

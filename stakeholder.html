@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+        content="Submit a feature request, technical task or bug report by email to the Join AI Issue Collector." />
+    <title>Join – Stakeholder Request</title>
+
+    <link rel="shortcut icon" href="./assets/icons/favicon.webp" type="image/x-icon" />
+    <link rel="stylesheet" href="./styles/variables.css" />
+    <link rel="stylesheet" href="./styles/fonts.css" />
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./styles/issueCollector.css" />
+    <script src="./scripts/issueCollector.js" defer></script>
+</head>
+
+<body class="collector-page collector-stakeholder-page">
+    <header class="stakeholder-header">
+        <a class="stakeholder-logo-link" href="./issue-collector.html" aria-label="Back to role selection">
+            <img src="./assets/icons/joinLogoDark.webp" alt="Join" />
+        </a>
+
+        <p class="stakeholder-counter" id="requestCounter" aria-live="polite">
+            <strong id="requestCount">–</strong> of <strong>10</strong> requests used today
+        </p>
+    </header>
+
+    <main class="stakeholder-main" aria-labelledby="stakeholderTitle">
+        <a class="stakeholder-back" href="./issue-collector.html" aria-label="Back to role selection">←</a>
+
+        <h1 id="stakeholderTitle">Welcome</h1>
+        <p class="stakeholder-mobile-counter" id="mobileRequestCounter" aria-live="polite">
+            <strong id="mobileRequestCount">–</strong> of <strong>10</strong> requests used
+        </p>
+
+        <section class="stakeholder-content" id="availableRequestView">
+            <div class="stakeholder-copy">
+                <h2>Easily create a ticket by sending an email — no extra steps needed.</h2>
+
+                <p>
+                    On this platform, you can submit your feature requests via email. Our AI system will automatically
+                    generate a ticket with a suitable title, category, priority level and a deadline only when one is
+                    included in your message.
+                </p>
+                <p>
+                    A total of 10 successfully generated email requests can be created per day. After this limit, no
+                    additional AI ticket is created that day and the sender receives an automatic limit notice.
+                </p>
+
+                <p class="stakeholder-email-address">
+                    Send requests to
+                    <a href="mailto:fabian.glanzer99+join@gmail.com">fabian.glanzer99+join@gmail.com</a>
+                </p>
+
+                <a class="stakeholder-action" id="createRequestButton"
+                    href="mailto:fabian.glanzer99+join@gmail.com?subject=Join%20Issue%20Request&amp;body=Please%20describe%20your%20feature%20request%2C%20technical%20task%20or%20bug%20as%20clearly%20as%20possible.%0A%0ARequest%3A%0A%0AOptional%20deadline%3A%0A">
+                    Create Email Request <span aria-hidden="true">✓</span>
+                </a>
+            </div>
+
+            <picture class="stakeholder-visual">
+                <source media="(width <= 700px)" srcset="./assets/images/stakeholder-illustration.webp" />
+                <img src="./assets/images/stakeholder-illustration-desktop.webp"
+                    alt="Illustration of a person working with a Kanban board" />
+            </picture>
+        </section>
+
+        <section class="stakeholder-content stakeholder-limit-view" id="limitReachedView" hidden>
+            <div class="stakeholder-copy">
+                <div class="stakeholder-limit-alert" role="status">The daily 10-request limit has been reached!</div>
+
+                <p>
+                    Need more? You can still send an email, but no additional AI ticket will be created today. The
+                    Issue Collector will automatically tell you that the daily limit has been reached.
+                </p>
+
+                <p class="stakeholder-email-address">
+                    Issue Collector:
+                    <a href="mailto:fabian.glanzer99+join@gmail.com">fabian.glanzer99+join@gmail.com</a>
+                </p>
+
+                <a class="stakeholder-action"
+                    href="mailto:fabian.glanzer99+join@gmail.com?subject=Join%20Issue%20Request">Send an email <span
+                        aria-hidden="true">✓</span></a>
+            </div>
+
+            <picture class="stakeholder-visual">
+                <source media="(width <= 700px)" srcset="./assets/images/stakeholder-limit-illustration.webp" />
+                <img src="./assets/images/stakeholder-limit-illustration-desktop.webp"
+                    alt="Illustration of a person reviewing a Kanban board" />
+            </picture>
+        </section>
+
+        <p class="stakeholder-counter-note" id="counterStatus" aria-live="polite"></p>
+    </main>
+
+    <footer class="collector-simple-footer collector-simple-footer-light">
+        <a href="./subpages/privacyPolicy.html">Privacy Policy</a>
+        <a href="./subpages/legalNotice.html">Legal notice</a>
+    </footer>
+</body>
+
+</html>

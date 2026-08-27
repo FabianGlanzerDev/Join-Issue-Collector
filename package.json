@@ -1,7 +1,7 @@
 {
-  "name": "join",
+  "name": "join-issue-collector",
   "version": "1.0.0",
-  "description": "",
+  "description": "AI-assisted email issue collector for the Join Kanban board using n8n, Gmail, Google Gemini and Firebase.",
   "main": "script.js",
   "scripts": {
     "lint:css": "stylelint \"style.css\" \"styles/**/*.css\"",
@@ -9,15 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SaschaSchmitt-Dev/join.git"
+    "url": "git+https://github.com/FabianGlanzerDev/join-issue-collector.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/SaschaSchmitt-Dev/join/issues"
+    "url": "https://github.com/FabianGlanzerDev/join-issue-collector/issues"
   },
-  "homepage": "https://github.com/SaschaSchmitt-Dev/join#readme",
+  "homepage": "https://github.com/FabianGlanzerDev/join-issue-collector#readme",
   "devDependencies": {
     "stylelint": "^17.14.0",
     "stylelint-config-standard": "^40.0.0",

@@ -3,4 +3,8 @@ Thumbs.db
 .vscode/
 out/
 node_modules/
+.env
+.env.*
+!.env.example
+.n8n/
 /scripts/firebaseConfig.js
