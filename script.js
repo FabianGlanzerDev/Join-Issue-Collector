@@ -1,4 +1,4 @@
-const BASE_URL = "https://join-issue-collector-9a6e1-default-rtdb.europe-west1.firebasedatabase.app/";
+const BASE_URL = "https://join-issue-default-rtdb.europe-west1.firebasedatabase.app/";
 const activeUserStorageKey = "joinActiveUser";
 const activeSessionStorageKey = "joinActiveSession";
 const guestUserId = "guest";
