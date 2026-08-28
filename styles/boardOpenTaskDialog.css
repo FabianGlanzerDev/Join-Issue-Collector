@@ -70,12 +70,22 @@
     min-width: 0;
 }
 
-.open-task-ai-label {
-    display: block;
-    width: 187px;
-    max-width: min(187px, 42vw);
-    height: auto;
+.open-task-ai-icon {
+    width: 20px;
+    height: 20px;
     object-fit: contain;
+}
+
+.open-task-ai-label {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    color: rgb(91 66 255);
+    font-size: 1rem;
+    line-height: 120%;
+    white-space: nowrap;
 }
 
 .open-task-content {
@@ -428,9 +438,12 @@
     }
 
     .open-task-ai-label {
-        width: 132px;
-        max-width: 38vw;
-        min-width: 0;
+        font-size: 0.85rem;
+    }
+
+    .open-task-ai-icon {
+        width: 17px;
+        height: 17px;
     }
 
     .open-task-close {
@@ -573,8 +586,12 @@
     }
 
     .open-task-ai-label {
-        width: 118px;
-        max-width: 36vw;
+        font-size: 0.78rem;
+    }
+
+    .open-task-ai-icon {
+        width: 16px;
+        height: 16px;
     }
 
     .open-task-content {
@@ -610,7 +627,7 @@
 
 @media (width <= 340px) {
     .open-task-ai-label {
-        width: 108px;
+        font-size: 0.72rem;
     }
 
     .open-task-category {

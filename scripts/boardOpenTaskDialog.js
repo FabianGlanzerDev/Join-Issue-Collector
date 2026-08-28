@@ -139,8 +139,11 @@ function getOpenTaskView(task) {
  * @returns {Object} The creator view data.
  */
 function getTaskCreatorView(task) {
-    const type = getTaskCreatorType(task.creatorType);
-    const creator = getTaskCreatorDisplay(task);
+    const registeredCreator = getRegisteredCreator(task.creatorEmail);
+    const type = registeredCreator
+        ? getTaskCreatorType("internal")
+        : getTaskCreatorType(task.creatorType);
+    const creator = registeredCreator?.name || getTaskCreatorDisplay(task);
     const action = getTaskCreatorAction(task, type.className);
 
     return {
@@ -149,6 +152,19 @@ function getTaskCreatorView(task) {
         creatorActionHref: escapeBoardHtml(action.href), creatorActionLabel: action.label,
         creatorActionIcon: action.icon, aiGenerated: task.aiGenerated === true
     };
+}
+
+
+
+
+/**
+ * Finds a registered Join account by creator email.
+ * Guest is excluded because it is not a registered member account.
+ * @param {string} email - The saved creator email.
+ * @returns {Object|null} The matching registered user or null.
+ */
+function getRegisteredCreator(email) {
+    return getRegisteredBoardUser(email);
 }
 
 

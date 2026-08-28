@@ -5,7 +5,7 @@
  */
 function getOpenTaskDialogTemplate(task) {
     const aiLabel = task.aiGenerated
-        ? '<img class="open-task-ai-label" src="../assets/icons/ai-generated-ticket.png" alt="AI-generated ticket">'
+        ? `<span class="open-task-ai-label"><img class="open-task-ai-icon" src="../assets/icons/ai-generated-icon.png" alt=""><span>AI-generated ticket</span></span>`
         : '';
     const creatorAction = task.creatorActionHref
         ? `<a class="creator-action" href="${task.creatorActionHref}"><img src="../assets/icons/${task.creatorActionIcon}" alt="">${task.creatorActionLabel}</a>`

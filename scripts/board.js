@@ -8,6 +8,7 @@ const boardColumns = {
 
 let boardTasks = [];
 let boardContacts = {};
+let boardUsers = {};
 
 /**
  * Starts the task search.
@@ -40,8 +41,14 @@ function filterTasks() {
  */
 async function initializeBoard() {
     try {
-        boardTasks = await getTasks();
-        boardContacts = await getBoardContacts();
+        const [tasks, contacts, users] = await Promise.all([
+            getTasks(),
+            getBoardContacts(),
+            getRegisteredBoardUsers()
+        ]);
+        boardContacts = contacts;
+        boardUsers = users;
+        boardTasks = await synchronizeRegisteredTaskCreators(tasks);
         renderBoardTasks(boardTasks, boardContacts);
         initializeBoardCardDragScroll();
     } catch (error) {
@@ -69,6 +76,92 @@ async function getBoardContacts() {
     ensureSuccessfulResponse(response, "Contacts could not be loaded.");
 
     return await response.json() || {};
+}
+
+
+/**
+ * Loads registered Join users for creator classification.
+ * A failed optional lookup must not prevent the board from loading.
+ * @returns {Promise<Object>} The registered users keyed by Firebase uid.
+ */
+async function getRegisteredBoardUsers() {
+    try {
+        const response = await fetch(getDatabaseUrl("users"));
+        ensureSuccessfulResponse(response, "Registered users could not be loaded.");
+        return await response.json() || {};
+    } catch (error) {
+        return {};
+    }
+}
+
+
+/**
+ * Returns the registered Join user matching an email address.
+ * @param {string} email - The creator email to match.
+ * @returns {Object|null} The matching user with its Firebase id.
+ */
+function getRegisteredBoardUser(email) {
+    const value = normalizeText(email);
+    if (!value) return null;
+    const entry = Object.entries(boardUsers).find(([id, user]) => {
+        return id !== guestUserId && normalizeText(user?.email) === value;
+    });
+    return entry ? { id: entry[0], ...entry[1] } : null;
+}
+
+
+/**
+ * Updates old or email-created tasks when their creator is a registered member.
+ * @param {Array<Object>} tasks - The loaded board tasks.
+ * @returns {Promise<Array<Object>>} Tasks with synchronized creator metadata.
+ */
+async function synchronizeRegisteredTaskCreators(tasks) {
+    const syncedTasks = [];
+
+    for (const task of tasks) {
+        syncedTasks.push(await synchronizeRegisteredTaskCreator(task));
+    }
+
+    return syncedTasks;
+}
+
+
+/**
+ * Persists the registered account reference for one matching task.
+ * @param {Object} task - The task to check.
+ * @returns {Promise<Object>} The synchronized task.
+ */
+async function synchronizeRegisteredTaskCreator(task) {
+    const user = getRegisteredBoardUser(task.creatorEmail);
+    if (!user || !needsCreatorSynchronization(task, user)) return task;
+    const creatorData = getRegisteredCreatorData(task, user);
+
+    try {
+        await updateTask(task.id, creatorData);
+    } catch (error) {
+        return { ...task, ...creatorData };
+    }
+
+    return { ...task, ...creatorData };
+}
+
+
+/** Returns whether a task still has stale creator metadata. */
+function needsCreatorSynchronization(task, user) {
+    return task.creatorType !== "internal"
+        || task.creatorId !== user.id
+        || task.creatorName !== (user.name || task.creatorName || "");
+}
+
+
+/** Builds the creator fields stored on a registered member's task. */
+function getRegisteredCreatorData(task, user) {
+    return {
+        creatorId: user.id,
+        creatorName: user.name || task.creatorName || "",
+        creatorEmail: user.email || task.creatorEmail || "",
+        creatorType: "internal"
+    };
 }
 
 

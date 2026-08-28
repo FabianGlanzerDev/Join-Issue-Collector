@@ -8,6 +8,12 @@
         content="Choose how you want to use Join: submit an email request as a stakeholder or log in as a team member." />
     <title>Join Issue Collector</title>
 
+    <script>
+        if (new URLSearchParams(window.location.search).get("intro") === "1") {
+            document.documentElement.classList.add("collector-intro-active");
+        }
+    </script>
+
     <link rel="shortcut icon" href="./assets/icons/favicon.webp" type="image/x-icon" />
     <link rel="stylesheet" href="./styles/variables.css" />
     <link rel="stylesheet" href="./styles/fonts.css" />
@@ -16,6 +22,13 @@
 </head>
 
 <body class="collector-page collector-welcome-page">
+    <div class="collector-intro-layer" aria-hidden="true">
+        <picture>
+            <source media="(width <= 768px)" srcset="./assets/icons/joinLogoLight.webp" />
+            <img class="collector-intro-logo" src="./assets/icons/joinLogoDark.webp" alt="" />
+        </picture>
+    </div>
+
     <main class="collector-role-main" aria-labelledby="collectorWelcomeTitle">
         <section class="collector-role-card">
             <header class="collector-role-header">
@@ -50,6 +63,7 @@
         <a href="./subpages/privacyPolicy.html">Privacy Policy</a>
         <a href="./subpages/legalNotice.html">Legal notice</a>
     </footer>
+    <script src="./scripts/issueCollectorEntry.js"></script>
 </body>
 
 </html>

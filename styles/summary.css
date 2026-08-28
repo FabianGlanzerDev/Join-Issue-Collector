@@ -274,6 +274,11 @@
         justify-content: center;
     }
 
+    .summary>.summary-content {
+        flex-basis: auto;
+        width: min(100%, 560px);
+    }
+
     .summary-user {
         display: none;
     }
@@ -357,7 +362,7 @@
         align-items: flex-start;
         gap: 8px;
         width: 100%;
-        max-width: 396px;
+        max-width: 520px;
     }
 
     .title span {
@@ -377,7 +382,7 @@
 
     .summary>.summary-content {
         flex-basis: auto;
-        width: 396px;
+        width: min(100%, 520px);
     }
 
     .summary-content.top,
@@ -438,6 +443,7 @@
     }
 
     .center-right h5 {
+        font-size: 0.9rem;
         white-space: nowrap;
     }
 
@@ -486,18 +492,60 @@
         width: calc((100% - 16px) / 2);
     }
 
-    .card.center {
+    .summary-content.center {
+        display: grid;
         gap: 10px;
-        padding: 14px;
+        grid-template-columns: minmax(0, 1fr) minmax(88px, 104px);
+    }
+
+    .card.center {
+        width: 100%;
+        gap: 8px;
+        padding: 12px;
+    }
+
+    .urgent-overview {
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .urgent-overview img {
+        width: 36px;
+        height: 36px;
+    }
+
+    .urgent-count h4 {
+        font-size: 2.25rem;
+    }
+
+    .center-divider {
+        height: 58px;
+    }
+
+    .center-right {
+        gap: 4px;
     }
 
     .center-right h5 {
-        font-size: 0.82rem;
+        font-size: 0.78rem;
         letter-spacing: -0.01em;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .center-right p {
+        font-size: 0.78rem;
+        line-height: 115%;
     }
 
     .card.email-requests {
-        flex-basis: 104px;
+        width: 100%;
+        min-width: 0;
+        padding-inline: 8px;
+    }
+
+    .card.email-requests h4 {
+        font-size: 2.4rem;
     }
 
     .card.bottom {
@@ -510,5 +558,48 @@
     .mobile-greeting-finished .title,
     .mobile-greeting-finished .summary>.summary-content {
         animation: none;
+    }
+}
+
+@media (width <= 350px) {
+    .main-content.summary-section {
+        padding-inline: 12px;
+    }
+
+    .summary-content.top,
+    .summary-content.bottom {
+        gap: 10px;
+    }
+
+    .summary-content.center {
+        gap: 8px;
+        grid-template-columns: minmax(0, 1fr) 82px;
+    }
+
+    .card.center {
+        padding: 10px 8px;
+    }
+
+    .urgent-overview img {
+        width: 32px;
+        height: 32px;
+    }
+
+    .urgent-count h4 {
+        font-size: 2rem;
+    }
+
+    .urgent-count p,
+    .center-right p,
+    .center-right h5 {
+        font-size: 0.72rem;
+    }
+
+    .card.email-requests h4 {
+        font-size: 2.1rem;
+    }
+
+    .card.bottom {
+        padding-inline: 8px;
     }
 }

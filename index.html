@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Join-Login</title>
 
+    <script>
+        if (new URLSearchParams(window.location.search).get("view") !== "login") {
+            window.location.replace("./issue-collector.html?intro=1");
+        }
+    </script>
+
     <link rel="shortcut icon" href="./assets/icons/favicon.webp" type="image/x-icon" />
 
     <link rel="stylesheet" href="./styles/variables.css" />
@@ -21,14 +27,7 @@
     <script src="./scripts/index.js" defer></script>
 </head>
 
-<body class="login-page intro-running public-entry">
-    <div class="intro-layer" aria-hidden="true">
-        <picture>
-            <source media="(width <= 768px)" srcset="./assets/icons/joinLogoLight.webp" />
-            <img class="intro-logo" src="./assets/icons/joinLogoDark.webp" alt="" />
-        </picture>
-    </div>
-
+<body class="login-page">
     <div class="login-content">
         <header class="login-header">
             <img id="loginLogo" class="login-logo" src="./assets/icons/joinLogoDark.webp" alt="Join Logo" />

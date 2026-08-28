@@ -34,6 +34,57 @@ body {
     outline-offset: 4px;
 }
 
+
+.collector-intro-layer {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background: var(--main-bg-color);
+    pointer-events: none;
+}
+
+.collector-intro-active .collector-intro-layer {
+    display: flex;
+    animation: collector-intro-background 1.8s ease forwards;
+}
+
+.collector-intro-logo {
+    display: block;
+    width: 274px;
+    height: auto;
+    opacity: 1;
+}
+
+.collector-intro-active .collector-intro-logo {
+    animation: collector-intro-logo 1.8s ease forwards;
+}
+
+@keyframes collector-intro-logo {
+    0%,
+    58% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes collector-intro-background {
+    0%,
+    62% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
 /* Welcome / role selection */
 .collector-welcome-page {
     justify-content: center;
@@ -406,6 +457,16 @@ body {
 }
 
 @media (width <= 700px) {
+
+    .collector-intro-layer {
+        background: var(--collector-navy);
+    }
+
+    .collector-intro-logo {
+        width: 100px;
+    }
+
+
     .collector-role-main {
         align-items: center;
         padding: 32px 20px !important;
@@ -599,5 +660,16 @@ body {
 
     .collector-page > * {
         visibility: visible;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .collector-intro-active .collector-intro-layer {
+        display: none;
+        animation: none;
+    }
+
+    .collector-intro-active .collector-intro-logo {
+        animation: none;
     }
 }

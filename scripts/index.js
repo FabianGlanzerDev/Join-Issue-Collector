@@ -241,7 +241,7 @@ function showMemberLogin() {
 
 /** Opens the Issue Collector role selection after the Join intro. */
 function openIssueCollector() {
-    window.location.replace('./issue-collector.html');
+    window.location.replace('./issue-collector.html?intro=1');
 }
 
 
