@@ -408,9 +408,9 @@
     },
     {
       "parameters": {
-        "sendTo": "={ $('Prepare Limit Email').item.json.creatorEmail }",
-        "subject": "={ $('Prepare Limit Email').item.json.responseSubject }",
-        "message": "={ $('Prepare Limit Email').item.json.responseText }",
+        "sendTo": "={{ $('Prepare Limit Email').item.json.creatorEmail }}",
+        "subject": "={{ $('Prepare Limit Email').item.json.responseSubject }}",
+        "message": "={{ $('Prepare Limit Email').item.json.responseText }}",
         "options": {
           "appendAttribution": false
         }
@@ -487,9 +487,9 @@
     },
     {
       "parameters": {
-        "sendTo": "={ $('Prepare Error Email').item.json.creatorEmail }",
-        "subject": "={ $('Prepare Error Email').item.json.responseSubject }",
-        "message": "={ $('Prepare Error Email').item.json.responseText }",
+        "sendTo": "={{ $('Prepare Error Email').item.json.creatorEmail }}",
+        "subject": "={{ $('Prepare Error Email').item.json.responseSubject }}",
+        "message": "={{ $('Prepare Error Email').item.json.responseText }}",
         "options": {
           "appendAttribution": false
         }
@@ -554,7 +554,7 @@
         "operation": "addLabels",
         "messageId": "={{ $('Gmail Trigger').item.json.id }}",
         "labelIds": [
-          "CHANGE_ME_LABEL_ID_ZU_BEARBEITEN"
+          "Label_8911553464455583777"
         ]
       },
       "type": "n8n-nodes-base.gmail",
