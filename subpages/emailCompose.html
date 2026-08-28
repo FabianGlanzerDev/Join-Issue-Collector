@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Prepare an email in a browser-based webmail service." />
+    <title>Join – Email</title>
+
+    <link rel="shortcut icon" href="../assets/icons/favicon.webp" type="image/x-icon" />
+    <link rel="stylesheet" href="../styles/variables.css" />
+    <link rel="stylesheet" href="../styles/fonts.css" />
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../styles/emailCompose.css" />
+    <script src="../scripts/webmailComposer.js" defer></script>
+    <script src="../scripts/emailCompose.js" defer></script>
+</head>
+
+<body class="email-compose-page">
+    <main class="email-compose-main">
+        <a class="email-compose-back" href="./board.html" aria-label="Back to board">
+            <img src="../assets/icons/arrow-left-line.png" alt="" />
+        </a>
+
+        <section class="email-compose-card" aria-labelledby="emailComposeTitle">
+            <h1 id="emailComposeTitle">Prepare email</h1>
+            <p>Choose a browser-based mail service or copy the email details. No installed email program is required.</p>
+
+            <form id="emailComposeForm" class="email-compose-form" novalidate>
+                <label>
+                    <span>To</span>
+                    <input id="emailComposeTo" type="email" readonly aria-describedby="emailComposeToError" />
+                    <span id="emailComposeToError" class="email-compose-error" aria-live="polite"></span>
+                </label>
+
+                <label>
+                    <span>Subject</span>
+                    <input id="emailComposeSubject" type="text" maxlength="120" value="Join request follow-up"
+                        aria-describedby="emailComposeSubjectError" required />
+                    <span id="emailComposeSubjectError" class="email-compose-error" aria-live="polite"></span>
+                </label>
+
+                <label>
+                    <span>Message</span>
+                    <textarea id="emailComposeBody" rows="7" maxlength="2500"
+                        placeholder="Write your message here." aria-describedby="emailComposeBodyError" required></textarea>
+                    <span id="emailComposeBodyError" class="email-compose-error" aria-live="polite"></span>
+                </label>
+
+                <label>
+                    <span>Open with</span>
+                    <select id="emailComposeProvider">
+                        <option value="gmail">Gmail in browser</option>
+                        <option value="outlook">Outlook in browser</option>
+                        <option value="yahoo">Yahoo Mail in browser</option>
+                        <option value="copy">Copy email details only</option>
+                    </select>
+                </label>
+
+                <div class="email-compose-actions">
+                    <button id="emailComposeCopy" class="email-compose-secondary" type="button">Copy details</button>
+                    <button class="email-compose-primary" type="submit">Continue in webmail</button>
+                </div>
+
+                <p id="emailComposeStatus" class="email-compose-status" aria-live="polite"></p>
+            </form>
+        </section>
+    </main>
+</body>
+
+</html>

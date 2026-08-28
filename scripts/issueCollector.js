@@ -96,4 +96,206 @@ async function loadDailyLimit() {
 }
 
 
-document.addEventListener('DOMContentLoaded', loadDailyLimit);
+document.addEventListener('DOMContentLoaded', () => {
+    loadDailyLimit();
+    initializeStakeholderRequestForm();
+});
+
+
+const ISSUE_COLLECTOR_EMAIL = 'fabian.glanzer99+join@gmail.com';
+
+
+/** Sets validation events and today's minimum date for the request form. */
+function initializeRequestFieldValidation() {
+    const form = document.getElementById('stakeholderRequestForm');
+    const deadline = document.getElementById('requestDeadline');
+
+    form?.setAttribute('novalidate', 'novalidate');
+    form?.addEventListener('invalid', preventNativeRequestValidation, true);
+    if (deadline) deadline.min = getViennaDate(new Date());
+
+    bindRequestFieldValidation('requestSubject', 'requestSubjectError');
+    bindRequestFieldValidation('requestMessage', 'requestMessageError');
+    deadline?.addEventListener('input', validateRequestDeadline);
+    deadline?.addEventListener('change', validateRequestDeadline);
+    deadline?.addEventListener('blur', validateRequestDeadline);
+}
+
+
+/** Prevents browser validation bubbles so Join can show its own stable inline errors. */
+function preventNativeRequestValidation(event) {
+    event.preventDefault();
+}
+
+
+/** Wires live clearing of a required request-field error. */
+function bindRequestFieldValidation(inputId, errorId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    input.addEventListener('input', () => {
+        if (input.value.trim()) setRequestFieldError(inputId, errorId, '');
+    });
+}
+
+
+/** Shows or clears one custom request-form error without layout movement. */
+function setRequestFieldError(inputId, errorId, message) {
+    const input = document.getElementById(inputId);
+    const error = document.getElementById(errorId);
+    if (!input || !error) return;
+
+    input.classList.toggle('input-error', Boolean(message));
+    input.setAttribute('aria-invalid', String(Boolean(message)));
+    error.textContent = message;
+}
+
+
+/** Validates one required request field. */
+function validateRequiredRequestField(inputId, errorId) {
+    const input = document.getElementById(inputId);
+    if (!input) return true;
+
+    const valid = Boolean(input.value.trim());
+    setRequestFieldError(inputId, errorId, valid ? '' : 'Please fill in this field');
+    return valid;
+}
+
+
+/** Validates the optional deadline against today's Vienna calendar date. */
+function validateRequestDeadline() {
+    const input = document.getElementById('requestDeadline');
+    if (!input) return true;
+
+    const valid = !input.value || input.value >= getViennaDate(new Date());
+    setRequestFieldError('requestDeadline', 'requestDeadlineError',
+        valid ? '' : 'Please enter a current or future date');
+    return valid;
+}
+
+
+/** Validates the complete stakeholder request form with custom messages. */
+function validateStakeholderRequestForm() {
+    const subjectValid = validateRequiredRequestField('requestSubject', 'requestSubjectError');
+    const messageValid = validateRequiredRequestField('requestMessage', 'requestMessageError');
+    const deadlineValid = validateRequestDeadline();
+    return subjectValid && messageValid && deadlineValid;
+}
+
+
+/** Focuses the first invalid request field after custom validation. */
+function focusFirstInvalidRequestField() {
+    const invalid = document.querySelector('.stakeholder-request-form .input-error');
+    invalid?.focus();
+}
+
+
+/** Opens the request form without invoking an operating-system mail handler. */
+function openRequestForm() {
+    const panel = document.getElementById('requestFormPanel');
+    if (!panel) return;
+
+    panel.hidden = false;
+    panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.getElementById('requestMessage')?.focus();
+}
+
+
+/** Closes the optional request form. */
+function closeRequestForm() {
+    const panel = document.getElementById('requestFormPanel');
+    if (panel) panel.hidden = true;
+}
+
+
+/** Returns the email body generated from the stakeholder form. */
+function getStakeholderRequestBody() {
+    const request = document.getElementById('requestMessage')?.value.trim() || '';
+    const deadline = document.getElementById('requestDeadline')?.value || '';
+
+    return [
+        'Please process this Join Issue Collector request.',
+        '',
+        'Request:',
+        request,
+        '',
+        `Optional deadline: ${deadline || 'none specified'}`
+    ].join('\n');
+}
+
+
+/** Returns copyable request details for users without a supported webmail account. */
+function getCopyableRequestDetails() {
+    const subject = document.getElementById('requestSubject')?.value.trim() || 'Join Issue Request';
+    const body = getStakeholderRequestBody();
+
+    return `To: ${ISSUE_COLLECTOR_EMAIL}\nSubject: ${subject}\n\n${body}`;
+}
+
+
+/** Shows a short request-form status message. */
+function setRequestFormStatus(message) {
+    const status = document.getElementById('requestFormStatus');
+    if (status) status.textContent = message;
+}
+
+
+/** Copies the Issue Collector address without using mailto. */
+async function copyIssueCollectorEmail() {
+    const copied = await copyTextToClipboard(ISSUE_COLLECTOR_EMAIL);
+    setRequestFormStatus(copied ? 'Email address copied.' : 'Could not copy the email address.');
+}
+
+
+/** Copies the prepared email request to the clipboard. */
+async function copyPreparedRequest() {
+    if (!validateStakeholderRequestForm()) {
+        focusFirstInvalidRequestField();
+        return;
+    }
+
+    const copied = await copyTextToClipboard(getCopyableRequestDetails());
+    setRequestFormStatus(copied ? 'Email details copied. Paste them into any webmail service.' : 'Could not copy the request.');
+}
+
+
+/** Opens the selected browser-based webmail composer or copies the request details. */
+async function submitStakeholderRequest(event) {
+    event.preventDefault();
+
+    if (!validateStakeholderRequestForm()) {
+        focusFirstInvalidRequestField();
+        return;
+    }
+
+    const subject = document.getElementById('requestSubject')?.value.trim() || 'Join Issue Request';
+    const provider = document.getElementById('requestProvider')?.value || 'gmail';
+    const body = getStakeholderRequestBody();
+
+    if (provider === 'copy') {
+        await copyPreparedRequest();
+        return;
+    }
+
+    const url = buildWebmailComposeUrl(provider, ISSUE_COLLECTOR_EMAIL, subject, body);
+    window.open(url, '_blank', 'noopener,noreferrer');
+    setRequestFormStatus('Webmail opened in a new tab. Send the prepared message there.');
+}
+
+
+/** Wires the stakeholder request form and email-copy controls. */
+function initializeStakeholderRequestForm() {
+    initializeRequestFieldValidation();
+
+    document.querySelectorAll('[data-open-request-form]').forEach((button) => {
+        button.addEventListener('click', openRequestForm);
+    });
+
+    document.querySelectorAll('[data-copy-email]').forEach((button) => {
+        button.addEventListener('click', copyIssueCollectorEmail);
+    });
+
+    document.getElementById('closeRequestForm')?.addEventListener('click', closeRequestForm);
+    document.getElementById('copyRequestButton')?.addEventListener('click', copyPreparedRequest);
+    document.getElementById('stakeholderRequestForm')?.addEventListener('submit', submitStakeholderRequest);
+}

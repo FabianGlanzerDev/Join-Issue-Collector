@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="./styles/fonts.css" />
     <link rel="stylesheet" href="./style.css" />
     <link rel="stylesheet" href="./styles/issueCollector.css" />
+    <script src="./scripts/webmailComposer.js" defer></script>
     <script src="./scripts/issueCollector.js" defer></script>
 </head>
 
@@ -22,16 +23,16 @@
             <img src="./assets/icons/joinLogoDark.webp" alt="Join" />
         </a>
 
+        <a class="stakeholder-back" href="./issue-collector.html" aria-label="Back to role selection">
+            <img src="./assets/icons/arrow-left-line.png" alt="" aria-hidden="true" />
+        </a>
+
         <p class="stakeholder-counter" id="requestCounter" aria-live="polite">
             <strong id="requestCount">–</strong> of <strong>10</strong> requests used today
         </p>
     </header>
 
     <main class="stakeholder-main" aria-labelledby="stakeholderTitle">
-        <a class="stakeholder-back" href="./issue-collector.html" aria-label="Back to role selection">
-            <img src="./assets/icons/arrow-left-line.png" alt="" aria-hidden="true" />
-        </a>
-
         <h1 id="stakeholderTitle">Welcome</h1>
         <p class="stakeholder-mobile-counter" id="mobileRequestCounter" aria-live="polite">
             <strong id="mobileRequestCount">–</strong> of <strong>10</strong> requests used
@@ -52,16 +53,17 @@
                 </p>
 
                 <p class="stakeholder-email-address">
-                    Send requests to
-                    <a href="mailto:fabian.glanzer99+join@gmail.com">fabian.glanzer99+join@gmail.com</a>
+                    Issue Collector:
+                    <span class="stakeholder-email-value">fabian.glanzer99+join@gmail.com</span>
+                    <button class="stakeholder-copy-email" type="button" data-copy-email
+                        aria-label="Copy Issue Collector email address">Copy</button>
                 </p>
 
-                <a class="stakeholder-action" id="createRequestButton"
-                    href="mailto:fabian.glanzer99+join@gmail.com?subject=Join%20Issue%20Request&amp;body=Please%20describe%20your%20feature%20request%2C%20technical%20task%20or%20bug%20as%20clearly%20as%20possible.%0A%0ARequest%3A%0A%0AOptional%20deadline%3A%0A">
+                <button class="stakeholder-action" id="createRequestButton" type="button" data-open-request-form>
                     <span class="stakeholder-action-label stakeholder-action-label-desktop">Create Email Request</span>
                     <span class="stakeholder-action-label stakeholder-action-label-mobile">Create request</span>
                     <img src="./assets/icons/check.webp" alt="" aria-hidden="true" />
-                </a>
+                </button>
             </div>
 
             <picture class="stakeholder-visual stakeholder-visual-original">
@@ -82,15 +84,16 @@
 
                 <p class="stakeholder-email-address">
                     Issue Collector:
-                    <a href="mailto:fabian.glanzer99+join@gmail.com">fabian.glanzer99+join@gmail.com</a>
+                    <span class="stakeholder-email-value">fabian.glanzer99+join@gmail.com</span>
+                    <button class="stakeholder-copy-email" type="button" data-copy-email
+                        aria-label="Copy Issue Collector email address">Copy</button>
                 </p>
 
-                <a class="stakeholder-action"
-                    href="mailto:fabian.glanzer99+join@gmail.com?subject=Join%20Issue%20Request">
-                    <span class="stakeholder-action-label stakeholder-action-label-desktop">Send an email</span>
+                <button class="stakeholder-action" type="button" data-open-request-form>
+                    <span class="stakeholder-action-label stakeholder-action-label-desktop">Prepare an email</span>
                     <span class="stakeholder-action-label stakeholder-action-label-mobile">Create request</span>
                     <img src="./assets/icons/check.webp" alt="" aria-hidden="true" />
-                </a>
+                </button>
             </div>
 
             <picture class="stakeholder-visual">
@@ -98,6 +101,67 @@
                 <img src="./assets/images/stakeholder-limit-illustration-desktop.webp"
                     alt="Illustration of a person reviewing a Kanban board" />
             </picture>
+        </section>
+
+
+        <section class="stakeholder-request-panel" id="requestFormPanel" hidden aria-labelledby="requestFormTitle">
+            <div class="stakeholder-request-panel-header">
+                <div>
+                    <h2 id="requestFormTitle">Prepare your request</h2>
+                    <p>Your message opens in the webmail service you choose. No local email program is required.</p>
+                </div>
+                <button class="stakeholder-request-close" id="closeRequestForm" type="button"
+                    aria-label="Close request form">&times;</button>
+            </div>
+
+            <form class="stakeholder-request-form" id="stakeholderRequestForm" novalidate>
+                <label>
+                    <span>Subject</span>
+                    <input id="requestSubject" name="subject" type="text" maxlength="120"
+                        value="Join Issue Request" aria-describedby="requestSubjectError" />
+                    <span class="stakeholder-field-error" id="requestSubjectError" aria-live="polite"></span>
+                </label>
+
+                <label>
+                    <span>Request</span>
+                    <textarea id="requestMessage" name="message" rows="6" maxlength="2500"
+                        placeholder="Describe your feature request, technical task or bug as clearly as possible."
+                        aria-describedby="requestMessageError"></textarea>
+                    <span class="stakeholder-field-error" id="requestMessageError" aria-live="polite"></span>
+                </label>
+
+                <label>
+                    <span>Optional deadline</span>
+                    <input id="requestDeadline" name="deadline" type="date"
+                        aria-describedby="requestDeadlineError" />
+                    <span class="stakeholder-field-error" id="requestDeadlineError" aria-live="polite"></span>
+                </label>
+
+                <label>
+                    <span>Open with</span>
+                    <select id="requestProvider" name="provider">
+                        <option value="gmail">Gmail in browser</option>
+                        <option value="outlook">Outlook in browser</option>
+                        <option value="yahoo">Yahoo Mail in browser</option>
+                        <option value="copy">Copy email details only</option>
+                    </select>
+                </label>
+
+                <p class="stakeholder-request-hint">
+                    The sender address is taken from the webmail account you use to send the message.
+                </p>
+
+                <div class="stakeholder-request-actions">
+                    <button class="stakeholder-request-secondary" id="copyRequestButton" type="button">
+                        Copy email details
+                    </button>
+                    <button class="stakeholder-request-submit" type="submit">
+                        Continue in webmail
+                    </button>
+                </div>
+
+                <p class="stakeholder-request-status" id="requestFormStatus" aria-live="polite"></p>
+            </form>
         </section>
 
         <p class="stakeholder-counter-note" id="counterStatus" aria-live="polite"></p>

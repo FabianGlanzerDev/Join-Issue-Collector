@@ -140,10 +140,9 @@ function getOpenTaskView(task) {
  */
 function getTaskCreatorView(task) {
     const registeredCreator = getRegisteredCreator(task.creatorEmail);
-    const type = registeredCreator
-        ? getTaskCreatorType("internal")
-        : getTaskCreatorType(task.creatorType);
-    const creator = registeredCreator?.name || getTaskCreatorDisplay(task);
+    const resolvedType = registeredCreator ? "internal" : getResolvedTaskCreatorType(task);
+    const type = getTaskCreatorType(resolvedType);
+    const creator = registeredCreator?.name || getTaskCreatorDisplay(task, resolvedType);
     const action = getTaskCreatorAction(task, type.className);
 
     return {
@@ -168,17 +167,38 @@ function getRegisteredCreator(email) {
 }
 
 
+
+/**
+ * Resolves missing legacy creator metadata without showing "Unknown".
+ * @param {Object} task - The saved task data.
+ * @returns {string} internal, external or guest.
+ */
+function getResolvedTaskCreatorType(task) {
+    const storedType = normalizeText(task.creatorType);
+    if (["internal", "member"].includes(storedType)) return "internal";
+    if (["external", "extern"].includes(storedType)) return "external";
+
+    if (normalizeText(task.creatorId) === guestUserId || normalizeText(task.creatorName) === "guest") {
+        return "guest";
+    }
+
+    if (String(task.creatorEmail || "").trim()) return "external";
+    return "guest";
+}
+
+
 /**
  * Gets a readable creator display value.
  * @param {Object} task - The saved task data.
  * @returns {string} The creator display text.
  */
-function getTaskCreatorDisplay(task) {
+function getTaskCreatorDisplay(task, creatorType) {
     const name = String(task.creatorName || "").trim();
     const email = String(task.creatorEmail || "").trim();
 
     if (name) return name;
-    return email || "Not specified";
+    if (email) return email;
+    return creatorType === "guest" ? "Guest" : "Guest";
 }
 
 
@@ -191,7 +211,7 @@ function getTaskCreatorType(creatorType) {
     const type = normalizeText(creatorType);
     if (["external", "extern"].includes(type)) return { label: "Extern", className: "external", icon: "external-globe.svg" };
     if (["internal", "member"].includes(type)) return { label: "Member", className: "internal", icon: "stakeholder.svg" };
-    return { label: "Unknown", className: "unknown", icon: "profile-link-icon.svg" };
+    return { label: "Guest", className: "guest", icon: "profile-link-icon.svg" };
 }
 
 
@@ -206,7 +226,9 @@ function getTaskCreatorAction(task, creatorType) {
 /** Returns the email action for an external stakeholder. */
 function getExternalCreatorAction(email) {
     const value = String(email || "").trim();
-    return value ? { href: `mailto:${value}`, label: "E-mail", icon: "send-email-icon.svg" } : { href: "", label: "", icon: "" };
+    const href = value ? `./emailCompose.html?to=${encodeURIComponent(value)}` : "";
+
+    return href ? { href, label: "E-mail", icon: "send-email-icon.svg" } : { href: "", label: "", icon: "" };
 }
 
 
