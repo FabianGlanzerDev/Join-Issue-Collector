@@ -1,0 +1,24 @@
+{
+  "title": "Example request",
+  "description": "A concise description generated from the stakeholder email.\n\nThis ticket was AI-generated from an email request.",
+  "dueDate": "2026-09-01",
+  "priority": "medium",
+  "category": "User Story",
+  "assignedTo": [],
+  "column": "triage",
+  "order": 1787932800000,
+  "creatorId": "",
+  "creatorName": "Stakeholder Name",
+  "creatorEmail": "stakeholder@example.com",
+  "creatorType": "external",
+  "aiGenerated": true,
+  "source": "email",
+  "createdAt": "2026-08-27T14:30:00.000Z",
+  "updatedAt": "2026-08-27T14:30:00.000Z",
+  "subtasks": {
+    "s001": {
+      "title": "Example subtask",
+      "completed": false
+    }
+  }
+}

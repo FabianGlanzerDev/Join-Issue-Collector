@@ -1,0 +1,1107 @@
+{
+  "name": "Join Issue Collector - 01 Gmail Intake + AI + Firebase + Responses",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "includeSpamTrash": false,
+          "includeDrafts": false,
+          "labelIds": [
+            "Label_8911553464455583777"
+          ],
+          "readStatus": "unread"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        48,
+        528
+      ],
+      "id": "f5903e01-b6fe-4a10-9b00-ab6c58fb3f16",
+      "name": "Gmail Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "const mail = $json || {};\n\n/**\n * Extracts a readable email address from common Gmail payload shapes.\n * @param {*} value Raw sender value.\n * @returns {string} Normalized email address.\n */\nfunction extractEmail(value) {\n  if (!value) return \"\";\n\n  if (Array.isArray(value)) {\n    for (const entry of value) {\n      const found = extractEmail(entry);\n      if (found) return found;\n    }\n    return \"\";\n  }\n\n  if (typeof value === \"object\") {\n    if (value.address) return String(value.address).trim().toLowerCase();\n    if (value.email) return String(value.email).trim().toLowerCase();\n    if (value.value) return extractEmail(value.value);\n    if (value.text) return extractEmail(value.text);\n  }\n\n  const text = String(value).trim();\n  const angleMatch = text.match(/<([^<>\\s]+@[^<>\\s]+)>/);\n  if (angleMatch) return angleMatch[1].trim().toLowerCase();\n\n  const plainMatch = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/i);\n  return plainMatch ? plainMatch[0].trim().toLowerCase() : \"\";\n}\n\n/**\n * Gets the Gmail sender display name without inventing one.\n * @param {*} value Raw sender value.\n * @returns {string} Sender display name or an empty string.\n */\nfunction extractName(value) {\n  if (!value) return \"\";\n  if (Array.isArray(value)) return value.length ? extractName(value[0]) : \"\";\n  if (typeof value === \"object\") {\n    if (value.name) return String(value.name).trim();\n    if (value.value) return extractName(value.value);\n    if (value.text) return extractName(value.text);\n  }\n\n  const text = String(value).trim();\n  const match = text.match(/^\\s*([^<]+?)\\s*</);\n  return match ? match[1].replace(/^['\\\"]|['\\\"]$/g, \"\").trim() : \"\";\n}\n\nconst rawFrom = mail.from ?? mail.From ?? mail.headers?.from ?? \"\";\nconst creatorEmail = extractEmail(rawFrom);\nconst creatorName = extractName(rawFrom);\nconst subject = String(mail.subject ?? mail.Subject ?? \"\").trim();\nconst textPlain = String(mail.text ?? mail.textPlain ?? mail.body ?? \"\").trim();\nconst html = String(mail.html ?? mail.textAsHtml ?? mail.textHtml ?? \"\").trim();\nconst body = textPlain || html;\nconst gmailMessageId = String(mail.id ?? \"\").trim();\nconst gmailThreadId = String(mail.threadId ?? \"\").trim();\nconst sourceMessageId = String(mail.messageId ?? gmailMessageId).trim();\nconst receivedAt = mail.date ? new Date(mail.date).toISOString() : new Date().toISOString();\n\nconst validationErrors = [];\nif (!gmailMessageId) validationErrors.push(\"gmail-message-id-missing\");\nif (!creatorEmail) validationErrors.push(\"sender-email-missing\");\nif (!body) validationErrors.push(\"message-body-missing\");\n\nreturn [{\n  json: {\n    creatorEmail,\n    creatorName,\n    subject,\n    body,\n    sourceMessageId,\n    gmailMessageId,\n    gmailThreadId,\n    receivedAt,\n    source: \"email\",\n    creatorType: \"external\",\n    isProcessable: validationErrors.length === 0,\n    validationErrors\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        288,
+        528
+      ],
+      "id": "51cd7989-fc21-4233-ad45-5074f9924cbb",
+      "name": "Normalize Incoming Email"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "648ffe1e-cfbf-4cd0-9a68-11eae10ba8c6",
+              "leftValue": "={{ $json.isProcessable }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        528,
+        528
+      ],
+      "id": "38a76a9f-d4d9-40bb-a407-3a32344c940f",
+      "name": "Email Is Processable?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "98bc6a4d-3df3-4a41-a08c-5cb1906332f4",
+              "leftValue": "={{ $json.limitReached }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1040,
+        336
+      ],
+      "id": "1308a961-d4e8-4a53-86b9-79041a478795",
+      "name": "Daily Limit Reached?"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map((item) => ({ json: { ...item.json, processingStatus: 'daily-limit-reached', shouldSendLimitEmail: true } }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        240
+      ],
+      "id": "2c3f2795-51ac-4497-8ddf-49f900442b8f",
+      "name": "Prepare Limit Response"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Du bist die KI-Triage für das Kanban-Board \"Join\".\nAnalysiere ausschließlich die folgende Stakeholder-E-Mail und liefere die Felder für ein neues Ticket.\n\nE-Mail:\nAbsender: {{ $json.creatorEmail }}\nName: {{ $json.creatorName }}\nBetreff: {{ $json.subject }}\nEmpfangen: {{ $json.receivedAt }}\nInhalt:\n{{ $json.body }}\n\nRegeln:\n1. title: kurz, eindeutig und passend zum tatsächlichen Inhalt der E-Mail.\n2. description: sachliche Zusammenfassung der Anfrage. Keine Anforderungen oder Fakten erfinden.\n3. category muss exakt einer dieser Werte sein:\n   - Technical Task: technische Implementierung, Wartung, Infrastruktur oder interner technischer Auftrag.\n   - User Story: neues Feature bzw. neuer Nutzerwert oder funktionale Erweiterung.\n   - Bug Request: vorhandene Funktion ist fehlerhaft, defekt oder verhält sich unerwartet.\n4. priority muss exakt urgent, medium oder low sein.\n   - urgent nur bei klarer Dringlichkeit, Blocker, Ausfall, kritischem Fehler, Sicherheitsproblem oder ausdrücklich sofort/ASAP/dringend.\n   - medium für normale Anforderungen ohne besondere Dringlichkeit.\n   - low für kleine, kosmetische oder ausdrücklich nicht dringende Änderungen.\n5. dueDate:\n   - Nur eine Deadline setzen, wenn sie aus der E-Mail hervorgeht.\n   - Relative Angaben wie \"morgen\" anhand des Empfangsdatums auflösen.\n   - Format immer YYYY-MM-DD.\n   - Wenn keine Deadline genannt ist: leerer String \"\".\n   - Niemals eine Deadline erfinden.\n6. subtasks:\n   - Nur ausdrücklich genannte Listen-/Unterpunkte übernehmen.\n   - Keine Subtasks aus normalem Fließtext ableiten.\n   - Maximal 6 Einträge.\n\nAntworte ausschließlich entsprechend dem verbundenen Structured Output Parser.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1248,
+        480
+      ],
+      "id": "38d0b555-cc7d-4d43-bfb3-13676e771628",
+      "name": "AI Ticket Triage"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"title\": {\n      \"type\": \"string\"\n    },\n    \"description\": {\n      \"type\": \"string\"\n    },\n    \"category\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Technical Task\",\n        \"User Story\",\n        \"Bug Request\"\n      ]\n    },\n    \"priority\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"urgent\",\n        \"medium\",\n        \"low\"\n      ]\n    },\n    \"dueDate\": {\n      \"type\": \"string\"\n    },\n    \"subtasks\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"maxItems\": 6\n    }\n  },\n  \"required\": [\n    \"title\",\n    \"description\",\n    \"category\",\n    \"priority\",\n    \"dueDate\",\n    \"subtasks\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1472,
+        720
+      ],
+      "id": "d7b6a422-5319-4973-9da3-f367cd739e89",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "const intake = $('Check Daily Limit').item.json;\nlet output = $json.output ?? $json;\n\nif (typeof output === 'string') {\n  try {\n    output = JSON.parse(output);\n  } catch {\n    output = {};\n  }\n}\n\nconst allowedCategories = ['Technical Task', 'User Story', 'Bug Request'];\nconst allowedPriorities = ['urgent', 'medium', 'low'];\nconst title = String(output.title || '').trim();\nconst description = String(output.description || '').trim();\nconst category = String(output.category || '').trim();\nconst priority = String(output.priority || '').trim();\nconst dueDate = String(output.dueDate || '').trim();\nconst errors = [];\n\nif (!title) errors.push('ai-title-missing');\nif (!description) errors.push('ai-description-missing');\nif (!allowedCategories.includes(category)) errors.push('ai-category-invalid');\nif (!allowedPriorities.includes(priority)) errors.push('ai-priority-invalid');\nif (dueDate && !/^\\d{4}-\\d{2}-\\d{2}$/.test(dueDate)) errors.push('ai-due-date-invalid');\n\nconst sourceSubtasks = Array.isArray(output.subtasks) ? output.subtasks.slice(0, 6) : [];\nconst subtasks = {};\nlet index = 1;\n\nfor (const entry of sourceSubtasks) {\n  const subtaskTitle = String(entry || '').trim();\n  if (!subtaskTitle) continue;\n  subtasks[`s${String(index).padStart(3, '0')}`] = { title: subtaskTitle, completed: false };\n  index += 1;\n}\n\nconst now = new Date().toISOString();\nconst aiOutputValid = errors.length === 0;\nconst note = 'Dieses Ticket wurde KI-generiert.';\nconst finalDescription = description ? `${description}\\n\\n${note}` : note;\n\nreturn [{\n  json: {\n    ...intake,\n    aiOutputValid,\n    aiValidationErrors: errors,\n    taskCandidate: {\n      title,\n      description: finalDescription,\n      dueDate,\n      priority,\n      category,\n      assignedTo: [],\n      column: 'triage',\n      order: Date.now(),\n      creatorId: '',\n      creatorName: intake.creatorName || '',\n      creatorEmail: intake.creatorEmail,\n      creatorType: 'external',\n      aiGenerated: true,\n      source: 'email',\n      sourceMessageId: intake.sourceMessageId || '',\n      createdAt: now,\n      updatedAt: now,\n      subtasks\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        480
+      ],
+      "id": "62cf3cde-889c-421b-ba25-25787c430f6e",
+      "name": "Build Join Task Candidate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "193fae88-7698-47fd-91c7-ac72f654a8b8",
+              "leftValue": "={{ $json.aiOutputValid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1760,
+        480
+      ],
+      "id": "26c17ee8-b362-4f4b-9fcf-c93fb7288180",
+      "name": "AI Output Valid?"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map((item) => ({ json: { ...item.json, processingStatus: 'ready-for-firebase' } }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        384
+      ],
+      "id": "98d4ca32-08cd-40e9-9be6-4b08290923fb",
+      "name": "Ready for Firebase"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map((item) => ({ json: { ...item.json, processingStatus: 'ai-processing-failed', shouldSendErrorEmail: true, processingError: 'AI output did not match the required Join ticket schema.' } }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        592
+      ],
+      "id": "a23c011c-db71-41c1-9535-721fe472eb88",
+      "name": "AI Processing Failed"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map((item) => ({ json: { ...item.json, intakeStatus: 'invalid-email', processingStatus: 'invalid-email', shouldSendErrorEmail: true, processingError: 'Incoming email is missing a usable sender address or message body.' } }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        640
+      ],
+      "id": "2907a1b0-b1b1-4c7a-bb2b-68fdf4c75276",
+      "name": "Invalid Email Data"
+    },
+    {
+      "parameters": {
+        "content": "## Gmail setup – required before activation\n\nThis workflow now uses **Gmail OAuth2** for intake, response emails and mailbox filing.\n\n1. Connect the same Gmail OAuth2 credential to `Gmail Trigger` and every Gmail node.\n2. In Gmail create these two labels exactly: **erledigt** and **zu bearbeiten**.\n3. Open `Add Gmail Label erledigt` and select your real `erledigt` label.\n4. Open `Add Gmail Label zu bearbeiten` and select your real `zu bearbeiten` label.\n5. Connect the Google Gemini credential to `Google Gemini Chat Model`.\n\nThis repository export contains no credential references, tokens, or passwords.\n\nGmail has labels instead of normal folders. The workflow files a processed mail by adding the target label, removing `INBOX`, and marking the message as read.",
+        "height": 520,
+        "width": 650
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        -352
+      ],
+      "id": "30fa77b0-ee98-46be-9f23-b34a9383fbb9",
+      "name": "Setup Note"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://join-issue-default-rtdb.europe-west1.firebasedatabase.app/tasks.json",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.taskCandidate }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2240,
+        384
+      ],
+      "id": "8a5577b7-900a-46a6-aa89-7a5760c1705a",
+      "name": "Create Task in Firebase",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const original = $('Ready for Firebase').item.json;\nconst taskId = String($json.name || '').trim();\n\nreturn [{\n  json: {\n    ...original,\n    firebaseCreated: Boolean(taskId),\n    taskId,\n    firebaseResponse: $json,\n    createdTask: taskId ? { id: taskId, ...original.taskCandidate } : null\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2480,
+        352
+      ],
+      "id": "e81e3664-5aaa-4d0b-9db2-dc3a51d9926a",
+      "name": "Prepare Firebase Result"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b12d9196-c19a-4b80-a0ad-c4018a467dc8",
+              "leftValue": "={{ $json.firebaseCreated }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2720,
+        352
+      ],
+      "id": "83cda84d-12db-420f-a61e-ccdf36f0842b",
+      "name": "Firebase Task Created?"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map((item) => ({\n  json: {\n    ...item.json,\n    processingStatus: 'firebase-created',\n    shouldSendSuccessEmail: true\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2960,
+        272
+      ],
+      "id": "e13d64bf-f8da-4970-8259-c12947879490",
+      "name": "Firebase Ticket Created"
+    },
+    {
+      "parameters": {
+        "jsCode": "const original = $('Ready for Firebase').item.json;\nconst rawError = $json.error?.message || $json.message || $json.description || '';\nconst processingError = String(rawError || 'Firebase did not create a Join task.').trim();\n\nreturn [{\n  json: {\n    ...original,\n    firebaseCreated: false,\n    processingStatus: 'firebase-create-failed',\n    shouldSendErrorEmail: true,\n    processingError\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2960,
+        464
+      ],
+      "id": "2f63dd61-6ad6-4666-b743-4312851bef39",
+      "name": "Prepare Firebase Failure"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst task = item.createdTask || item.taskCandidate || {};\nconst greeting = item.creatorName ? `Hallo ${item.creatorName},` : 'Hallo,';\nconst deadline = task.dueDate ? task.dueDate : 'keine angegeben';\n\nreturn [{\n  json: {\n    ...item,\n    responseType: 'success',\n    responseSubject: `Join: Ticket „${task.title || 'Neue Anfrage'}“ wurde erstellt`,\n    responseText: `${greeting}\\n\\ndeine Anfrage wurde erfolgreich verarbeitet und als Ticket im Join-Board angelegt.\\n\\nTitel: ${task.title || '-'}\\nKategorie: ${task.category || '-'}\\nPriorität: ${task.priority || '-'}\\nDeadline: ${deadline}\\nStatus: Triage\\nTicket-ID: ${item.taskId || '-'}\\n\\nDu wirst bei späteren Statusänderungen automatisch informiert.\\n\\nDies ist eine automatisch erzeugte Bestätigung.`,\n    mailboxTarget: 'erledigt'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3344,
+        -32
+      ],
+      "id": "421e9439-edfe-4ca2-b7de-35c6a7e6b1cb",
+      "name": "Prepare Success Email"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.creatorEmail }}",
+        "subject": "={{ $json.responseSubject }}",
+        "emailType": "text",
+        "message": "={{ $json.responseText }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3552,
+        16
+      ],
+      "id": "483c973f-00e1-461d-ae89-b87f077f7314",
+      "name": "Send Success Email (Gmail)",
+      "webhookId": "9b61530e-258a-4df1-9251-14ffc0254c20"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $('Prepare Success Email').item.json;\nreturn [{ json: { ...item, responseEmailSent: true, processingStatus: 'completed', mailboxActionRequired: true } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3680,
+        208
+      ],
+      "id": "2cc570d2-99e6-408f-bf77-46b66af3b63c",
+      "name": "Success Response Sent"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst greeting = item.creatorName ? `Hallo ${item.creatorName},` : 'Hallo,';\n\nreturn [{\n  json: {\n    ...item,\n    responseType: 'limit',\n    responseSubject: 'Join: Tageslimit für neue Anfragen erreicht',\n    responseText: `${greeting}\\n\\ndeine E-Mail wurde empfangen, aber heute wurde das Tageslimit von ${item.dailyLimit?.limit || 10} automatisch verarbeiteten Anfragen bereits erreicht.\\n\\nEs wurde kein neues Join-Ticket erstellt und für diese Anfrage wurde keine KI-Verarbeitung gestartet. Bitte sende die Anfrage am nächsten Tag erneut oder wende dich direkt an das Team.\\n\\nDies ist eine automatisch erzeugte Nachricht.`,\n    mailboxTarget: 'erledigt'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1488,
+        160
+      ],
+      "id": "572f307e-6585-4a3b-a5f7-4fab2379e6e6",
+      "name": "Prepare Limit Email"
+    },
+    {
+      "parameters": {
+        "sendTo": "={ $('Prepare Limit Email').item.json.creatorEmail }",
+        "subject": "={ $('Prepare Limit Email').item.json.responseSubject }",
+        "message": "={ $('Prepare Limit Email').item.json.responseText }",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1728,
+        160
+      ],
+      "id": "54d96e72-c32f-40e4-acc6-3421fbe38d73",
+      "name": "Send Limit Email (Gmail)",
+      "webhookId": "6ffbdc2f-89b2-48e4-ba78-0d2b274b3eab"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $('Prepare Limit Email').item.json;\nreturn [{ json: { ...item, responseEmailSent: true, processingStatus: 'daily-limit-notified', mailboxActionRequired: true } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1968,
+        160
+      ],
+      "id": "1f471b96-3627-4b44-b646-4cb4cb58497c",
+      "name": "Limit Response Sent"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst greeting = item.creatorName ? `Hallo ${item.creatorName},` : 'Hallo,';\nconst canReply = Boolean(String(item.creatorEmail || '').trim());\n\nreturn [{\n  json: {\n    ...item,\n    canReply,\n    responseType: 'error',\n    responseSubject: 'Join: Anfrage erhalten – manuelle Bearbeitung erforderlich',\n    responseText: `${greeting}\\n\\ndeine Anfrage ist bei uns eingegangen, konnte jedoch nicht vollständig automatisch verarbeitet werden. Es wurde deshalb keine erfolgreiche automatische Ticket-Erstellung bestätigt.\\n\\nDas Team kann die Anfrage manuell prüfen und sich bei Bedarf zeitnah melden.\\n\\nDies ist eine automatisch erzeugte Nachricht.`,\n    mailboxTarget: 'zu bearbeiten'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2240,
+        640
+      ],
+      "id": "02ecef3f-7b69-4561-86d5-dc89524ee898",
+      "name": "Prepare Error Email"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8f0249d5-9739-4122-b512-c38e9aa2aa56",
+              "leftValue": "={{ $json.canReply }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2480,
+        640
+      ],
+      "id": "a9fd0ff1-19a7-4519-8dc2-f39727c8397f",
+      "name": "Can Reply To Sender?"
+    },
+    {
+      "parameters": {
+        "sendTo": "={ $('Prepare Error Email').item.json.creatorEmail }",
+        "subject": "={ $('Prepare Error Email').item.json.responseSubject }",
+        "message": "={ $('Prepare Error Email').item.json.responseText }",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2720,
+        608
+      ],
+      "id": "8caaf37d-dffa-4fcd-ad77-edaafd296bd0",
+      "name": "Send Error Email (Gmail)",
+      "webhookId": "f127850e-6f74-4b43-bf64-0ae77e116574"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $('Prepare Error Email').item.json;\nreturn [{ json: { ...item, responseEmailSent: true, processingStatus: 'error-notified', mailboxActionRequired: true } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2960,
+        608
+      ],
+      "id": "a2020832-bcdd-4447-ba94-bed3ca2c7cdb",
+      "name": "Error Response Sent"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map((item) => ({\n  json: {\n    ...item.json,\n    responseEmailSent: false,\n    processingStatus: 'manual-review-no-sender',\n    mailboxActionRequired: true,\n    mailboxTarget: 'zu bearbeiten'\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2720,
+        752
+      ],
+      "id": "c27a3661-ecd9-4f46-8ec9-0639d1101a2a",
+      "name": "Error Without Sender Address"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "Label_3096864738381681228"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3920,
+        160
+      ],
+      "id": "88cb178a-7a68-4f2e-831a-dc35244e95dd",
+      "name": "Add Gmail Label erledigt",
+      "webhookId": "f2bf1845-8ed6-49cf-8e6e-7d404da1b1d8",
+      "notes": "After import, connect Gmail OAuth2 and select the real Gmail label \"erledigt\" in Label Names or IDs."
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "CHANGE_ME_LABEL_ID_ZU_BEARBEITEN"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3200,
+        640
+      ],
+      "id": "65053171-ec32-4fdd-84f0-c3fa143b334f",
+      "name": "Add Gmail Label zu bearbeiten",
+      "webhookId": "8768580c-874b-433c-a0c5-2a004e0312ec",
+      "notes": "After import, connect Gmail OAuth2 and select the real Gmail label \"zu bearbeiten\" in Label Names or IDs."
+    },
+    {
+      "parameters": {
+        "operation": "removeLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "INBOX"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        4464,
+        336
+      ],
+      "id": "3a35f7b9-52d7-4dbf-ae13-4032d86bcd92",
+      "name": "Remove from Gmail Inbox",
+      "webhookId": "7b347f13-38e9-412e-b0ff-e9cdbf659fa6"
+    },
+    {
+      "parameters": {
+        "operation": "markAsRead",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        4880,
+        512
+      ],
+      "id": "bcc6c062-88cc-496c-be24-757b053df032",
+      "name": "Mark Gmail Message Read",
+      "webhookId": "c07fa8e4-eb40-49c5-bb0e-1d6476dacbf1"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.6-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1104,
+        688
+      ],
+      "id": "ecffcb19-a40f-46b1-a27c-cb2d954ffa51",
+      "name": "Google Gemini Chat Model"
+    },
+    {
+      "parameters": {
+        "operation": "removeLabels",
+        "messageId": "={{ $json.id }}",
+        "labelIds": [
+          "Label_8911553464455583777"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        4144,
+        160
+      ],
+      "id": "809fa695-e67e-49c8-ab54-05c2420f5a9f",
+      "name": "Gmail-Label zu bearbeiten entfernen",
+      "webhookId": "1b8f25ca-9ddb-4a4c-ac4a-0adb1f9323ff"
+    },
+    {
+      "parameters": {
+        "url": "https://join-issue-default-rtdb.europe-west1.firebasedatabase.app/tasks.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        768,
+        -64
+      ],
+      "id": "da4cdfe0-3ffd-4dbf-b84a-4992ea859ec5",
+      "name": "Load Daily Requests from Firebase"
+    },
+    {
+      "parameters": {
+        "jsCode": "const incoming = $('Normalize Incoming Email').item.json;\nconst tasks = $input.first()?.json ?? {};\nconst limit = 10;\n\nconst viennaDateFormatter = new Intl.DateTimeFormat('en-CA', {\n  timeZone: 'Europe/Vienna',\n  year: 'numeric',\n  month: '2-digit',\n  day: '2-digit'\n});\n\n\n/**\n * Returns a calendar date in the Europe/Vienna timezone.\n * @param {string|Date} value Date value.\n * @returns {string} Date formatted as YYYY-MM-DD.\n */\nfunction getViennaDate(value) {\n  const date = new Date(value);\n\n  if (Number.isNaN(date.getTime())) {\n    return '';\n  }\n\n  return viennaDateFormatter.format(date);\n}\n\n\nconst today = getViennaDate(new Date());\n\nconst count = Object.values(tasks).filter((task) => {\n  return task?.source === 'email'\n    && task?.aiGenerated === true\n    && getViennaDate(task?.createdAt) === today;\n}).length;\n\nconst limitReached = count >= limit;\n\nreturn [{\n  json: {\n    ...incoming,\n    limitReached,\n    dailyLimit: {\n      date: today,\n      limit,\n      count,\n      remaining: Math.max(0, limit - count)\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        992,
+        -96
+      ],
+      "id": "967be956-addb-44a0-bfb0-f9a23aab3c8f",
+      "name": "Check Daily Limit"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Normalize Incoming Email": {
+      "main": [
+        [
+          {
+            "node": "Email Is Processable?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Is Processable?": {
+      "main": [
+        [
+          {
+            "node": "Load Daily Requests from Firebase",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid Email Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Limit Reached?": {
+      "main": [
+        [
+          {
+            "node": "Prepare Limit Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Ticket Triage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Ticket Triage",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Ticket Triage": {
+      "main": [
+        [
+          {
+            "node": "Build Join Task Candidate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Join Task Candidate": {
+      "main": [
+        [
+          {
+            "node": "AI Output Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Output Valid?": {
+      "main": [
+        [
+          {
+            "node": "Ready for Firebase",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Processing Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ready for Firebase": {
+      "main": [
+        [
+          {
+            "node": "Create Task in Firebase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Task in Firebase": {
+      "main": [
+        [
+          {
+            "node": "Prepare Firebase Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Firebase Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Firebase Result": {
+      "main": [
+        [
+          {
+            "node": "Firebase Task Created?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firebase Task Created?": {
+      "main": [
+        [
+          {
+            "node": "Firebase Ticket Created",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Firebase Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firebase Ticket Created": {
+      "main": [
+        [
+          {
+            "node": "Prepare Success Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Success Email": {
+      "main": [
+        [
+          {
+            "node": "Send Success Email (Gmail)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Limit Response": {
+      "main": [
+        [
+          {
+            "node": "Prepare Limit Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Limit Email": {
+      "main": [
+        [
+          {
+            "node": "Send Limit Email (Gmail)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Processing Failed": {
+      "main": [
+        [
+          {
+            "node": "Prepare Error Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Firebase Failure": {
+      "main": [
+        [
+          {
+            "node": "Prepare Error Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invalid Email Data": {
+      "main": [
+        [
+          {
+            "node": "Prepare Error Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Error Email": {
+      "main": [
+        [
+          {
+            "node": "Can Reply To Sender?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Can Reply To Sender?": {
+      "main": [
+        [
+          {
+            "node": "Send Error Email (Gmail)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Without Sender Address",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize Incoming Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Success Email (Gmail)": {
+      "main": [
+        [
+          {
+            "node": "Success Response Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Limit Email (Gmail)": {
+      "main": [
+        [
+          {
+            "node": "Limit Response Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Error Email (Gmail)": {
+      "main": [
+        [
+          {
+            "node": "Error Response Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success Response Sent": {
+      "main": [
+        [
+          {
+            "node": "Add Gmail Label erledigt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit Response Sent": {
+      "main": [
+        [
+          {
+            "node": "Add Gmail Label erledigt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Response Sent": {
+      "main": [
+        [
+          {
+            "node": "Add Gmail Label zu bearbeiten",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Without Sender Address": {
+      "main": [
+        [
+          {
+            "node": "Add Gmail Label zu bearbeiten",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Gmail Label erledigt": {
+      "main": [
+        [
+          {
+            "node": "Gmail-Label zu bearbeiten entfernen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Gmail Label zu bearbeiten": {
+      "main": [
+        [
+          {
+            "node": "Remove from Gmail Inbox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove from Gmail Inbox": {
+      "main": [
+        [
+          {
+            "node": "Mark Gmail Message Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Ticket Triage",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail-Label zu bearbeiten entfernen": {
+      "main": [
+        [
+          {
+            "node": "Remove from Gmail Inbox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Daily Requests from Firebase": {
+      "main": [
+        [
+          {
+            "node": "Check Daily Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Daily Limit": {
+      "main": [
+        [
+          {
+            "node": "Daily Limit Reached?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e65fd96e-9838-4547-9742-77a40b352d7f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "41c828d7946f1f4cedd57c4708cd733a7e103664a60525809cf84f31fa72fc32"
+  },
+  "nodeGroups": [],
+  "id": "S1WG6S1GL0TIIgQU",
+  "tags": []
+}

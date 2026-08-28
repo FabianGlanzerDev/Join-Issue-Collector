@@ -1,0 +1,287 @@
+{
+  "name": "Join Issue Collector - 02 Status Notifications",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b544e83c-7988-4c4d-a602-cf92001ee421",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://join-issue-default-rtdb.europe-west1.firebasedatabase.app/tasks.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        368,
+        0
+      ],
+      "id": "9ccb4e1d-415e-42a3-ac95-64510680d169",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const tasks = $input.first().json;\n\nreturn Object.entries(tasks)\n .filter(([id, task]) => {\n  return Boolean(task?.creatorEmail);\n})\n  .map(([taskId, task]) => ({\n    json: {\n      taskId,\n      ...task,\n      lastNotifiedColumn: task.lastNotifiedColumn ?? null,\n      needsBaseline: !task.lastNotifiedColumn,\n      statusChanged:\n        Boolean(task.lastNotifiedColumn) &&\n        task.column !== task.lastNotifiedColumn,\n    },\n  }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ],
+      "id": "6858f7e0-9cd6-4e1f-921a-ea6a5c7e1fc1",
+      "name": "KI-Tickets vorbereiten"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f9c0c1f0-8264-4fd6-8a2e-21457e67c168",
+              "leftValue": "={{ $json.needsBaseline }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        0
+      ],
+      "id": "eb78343b-f314-4ec6-a470-d5455643f70f",
+      "name": "Baseline nötig?"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://join-issue-default-rtdb.europe-west1.firebasedatabase.app/tasks/{{ $json.taskId }}.json",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  lastNotifiedColumn: $json.column\n} }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1136,
+        -176
+      ],
+      "id": "cb0c694d-75a5-4b17-a583-5efe749c7736",
+      "name": "Baseline in Firebase speichern"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d334adf0-25cb-4f74-90fb-6c822c6421fd",
+              "leftValue": "={{ $json.statusChanged }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1120,
+        240
+      ],
+      "id": "2b9fe2a8-fff0-4c20-97d1-e01bc24b2834",
+      "name": "Status geändert?"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const statusNames = {\n  triage: 'Triage',\n  todo: 'To do',\n  'to-do': 'To do',\n  inprogress: 'In progress',\n  'in-progress': 'In progress',\n  'in_progress': 'In progress',\n  awaitfeedback: 'Await feedback',\n  'await-feedback': 'Await feedback',\n  'await_feedback': 'Await feedback',\n  done: 'Done',\n};\n\nconst oldStatus =\n  statusNames[$json.lastNotifiedColumn] ?? $json.lastNotifiedColumn;\n\nconst newStatus =\n  statusNames[$json.column] ?? $json.column;\n\nreturn {\n  json: {\n    ...$json,\n\n    mailSubject:\n      `Join: Statusänderung bei „${$json.title}“`,\n\n    mailText:\n`Hallo ${$json.creatorName || 'Hallo'},\n\nder Status deines Tickets wurde geändert.\n\nTitel: ${$json.title}\nVorheriger Status: ${oldStatus}\nNeuer Status: ${newStatus}\nTicket-ID: ${$json.taskId}\n\nDu wirst bei weiteren Statusänderungen automatisch informiert.\n\nDies ist eine automatisch generierte Benachrichtigung.`\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1504,
+        176
+      ],
+      "id": "215679dd-fb23-43bb-a9e1-9d53eaa20534",
+      "name": "Status-E-Mail vorbereiten"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.creatorEmail }}",
+        "subject": "={{ $json.mailSubject }}",
+        "emailType": "text",
+        "message": "={{ $json.mailText }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1728,
+        176
+      ],
+      "id": "143737d7-b589-43a3-a145-4319aef57c24",
+      "name": "Status-E-Mail senden",
+      "webhookId": "632aea57-7d0b-494d-beb7-9551575b2da9"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://join-issue-default-rtdb.europe-west1.firebasedatabase.app/tasks/{{ $('Status-E-Mail vorbereiten').item.json.taskId }}.json",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  lastNotifiedColumn: $('Status-E-Mail vorbereiten').item.json.column\n} }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1952,
+        176
+      ],
+      "id": "b7114e7e-5023-44bb-856c-cb5fd5ebfc18",
+      "name": "Benachrichtigungsstatus speichern"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "KI-Tickets vorbereiten",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KI-Tickets vorbereiten": {
+      "main": [
+        [
+          {
+            "node": "Baseline nötig?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Baseline nötig?": {
+      "main": [
+        [
+          {
+            "node": "Baseline in Firebase speichern",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Status geändert?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Status geändert?": {
+      "main": [
+        [
+          {
+            "node": "Status-E-Mail vorbereiten",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Status-E-Mail vorbereiten": {
+      "main": [
+        [
+          {
+            "node": "Status-E-Mail senden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Status-E-Mail senden": {
+      "main": [
+        [
+          {
+            "node": "Benachrichtigungsstatus speichern",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8762660c-153c-4cc4-ac75-2efe6728b6ae",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "41c828d7946f1f4cedd57c4708cd733a7e103664a60525809cf84f31fa72fc32"
+  },
+  "nodeGroups": [],
+  "id": "ZnjxVHnBPwh9Qgsc",
+  "tags": []
+}

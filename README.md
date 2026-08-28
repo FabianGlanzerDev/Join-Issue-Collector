@@ -1,118 +1,179 @@
-# Join
+# Join Issue Collector
 
-Join is a responsive Kanban project management application for organizing tasks, tracking progress, and collaborating with a team. It combines a clear task board with contact management, user authentication, subtasks, priorities, and a summary dashboard.
+Join Issue Collector extends the existing Join Kanban application with an AI-assisted email intake workflow. Stakeholders can submit feature requests, technical tasks, and bug reports by email. n8n processes the message, uses Google Gemini to structure the request, creates a ticket in Firebase, and places it in Join's **Triage** column.
 
-![Join summary dashboard](assets/screenshots/screenshot1.png)
+## Project preview
 
-## Features
+### Public role selection
 
-- Email and password authentication with Firebase Authentication
-- Guest login with an isolated guest workspace
-- Summary dashboard with task counts and upcoming deadlines
-- Kanban board with drag-and-drop task movement
+![Join Issue Collector role selection](./assets/screenshots/issue-collector-welcome.png)
+
+The public entry page follows the supplied Figma design and separates stakeholder access from the normal Join team-member login.
+
+### AI-generated Join ticket
+
+![AI-generated Join ticket](./assets/screenshots/ai-generated-ticket.png)
+
+Successfully processed stakeholder emails are converted into Join tasks, marked as AI-generated, and created in **Triage**.
+
+### n8n email intake workflow
+
+![n8n Gmail intake, AI and Firebase workflow](./assets/screenshots/n8n-email-intake-workflow.png)
+
+The intake workflow combines Gmail, the Firebase-based daily limit, Google Gemini, Firebase ticket creation, response emails, and mailbox filing.
+
+## Demo entry points
+
+- Public role selection / landing page: `issue-collector.html`
+- Stakeholder request page: `stakeholder.html`
+- Issue Collector email: `fabian.glanzer99+join@gmail.com`
+- Join login / board entry: `index.html`
+
+The stakeholder request page displays the current daily usage and provides a direct email action for new requests.
+
+## Issue Collector flow
+
+1. A stakeholder sends an email to `fabian.glanzer99+join@gmail.com`.
+2. n8n receives the message through the Gmail Trigger.
+3. The workflow checks the daily limit before using the AI service.
+4. Google Gemini extracts and generates the Join ticket data:
+   - title
+   - description
+   - category: `Technical Task`, `User Story`, or `Bug Request`
+   - priority: `urgent`, `medium`, or `low`
+   - deadline only when one is actually present in the email
+   - explicitly listed subtasks, when available
+5. The ticket is created in Firebase with `column: "triage"` and is marked as AI-generated.
+6. The sender receives a confirmation email.
+7. Successfully handled messages receive the Gmail label `erledigt`; processing failures receive `zu bearbeiten`.
+8. When a ticket with a stored creator email changes status, a second n8n workflow emails the creator — for both email-generated and manually created tickets.
+
+## Daily limit
+
+The email collector accepts a maximum of **10 successfully generated email tickets per Europe/Vienna calendar day**. Requests above the limit do not call the AI service and do not create a Join ticket. The sender receives an automatic limit response.
+
+Firebase's task collection is the single source of truth for the daily limit. Both the stakeholder page and n8n count successfully created tickets with:
+
+- `source: "email"`
+- `aiGenerated: true`
+- a `createdAt` date matching the current Europe/Vienna calendar day
+
+This keeps the displayed `x of 10` value and the backend enforcement in sync.
+
+## Join features
+
+- Firebase Authentication with registered-user and guest login
+- Summary dashboard
+- Kanban board with `Triage`, `To do`, `In progress`, `Await feedback`, and `Done`
+- Drag-and-drop task movement
 - Task search and filtering
 - Create, edit, and delete tasks
-- Priorities, categories, due dates, assignments, and subtasks
-- Subtask progress tracking directly on task cards
-- Contact creation, editing, deletion, and assignment
-- Responsive layouts for desktop, tablet, and mobile devices
-- Keyboard-accessible dialogs, dropdowns, and navigation
+- `Technical Task`, `User Story`, and `Bug Request` categories
+- Priorities, due dates, assignments, and subtasks
+- Internal/external creator information in task details
+- AI-generated ticket indicator
+- Contact management
+- Responsive layouts for desktop, tablet, and mobile
 
-## Screenshots
-
-### Task creation
-
-Create detailed tasks, assign contacts, choose a priority and category, set a due date, and split work into subtasks.
-
-![Add Task page](assets/screenshots/screenshot2.png)
-
-### Kanban board
-
-View tasks across the workflow columns, search the board, and move cards between statuses using drag and drop.
-
-![Kanban board](assets/screenshots/screenshot3.png)
-
-### Contact management
-
-Keep team members organized in an alphabetical contact list and use them as task assignees.
-
-![Contacts page](assets/screenshots/screenshot4.png)
-
-### Authentication
-
-Sign in with an account, create a new account, or explore the application using the guest login.
-
-![Login page](assets/screenshots/screenshot5.png)
-
-## Tech Stack
+## Tech stack
 
 - HTML5
 - CSS3
 - Vanilla JavaScript
 - Firebase Authentication
 - Firebase Realtime Database
+- n8n
+- Gmail OAuth2
+- Google Gemini in n8n
 - Stylelint
 
-## Project Structure
+## Project structure
 
 ```text
-join/
-├── assets/          # Icons, fonts, and screenshots
-├── scripts/         # Application logic and Firebase integration
-├── styles/          # Page and component styles
-├── subpages/        # Application pages
-├── templates/       # Reusable HTML template functions
-├── index.html       # Login page
-├── script.js        # Shared utilities and application state
-└── style.css        # Global styles
+join-issue-collector/
+├── assets/
+│   ├── icons/
+│   ├── images/
+│   ├── fonts/
+│   └── screenshots/
+├── n8n/                    # Exported workflows and technical documentation
+├── scripts/                # Application logic and Firebase integration
+├── styles/                 # Global/page/component styles
+├── subpages/               # Join application pages
+├── templates/              # Reusable HTML template functions
+├── index.html              # Join login
+├── issue-collector.html    # Public role selection
+├── stakeholder.html        # Stakeholder request page
+├── script.js               # Shared application state/utilities
+└── style.css               # Global styles
 ```
 
-## Getting Started
+## Local development
 
-### Prerequisites
+The project is a static frontend and can be served with VS Code Live Server or another local HTTP server.
 
-You only need a modern web browser and a local static web server. One simple option is the VS Code **Live Server** extension.
+For Join login/sign-up, `scripts/firebaseConfig.js` is created locally from `scripts/firebaseConfig.example.js` using the Firebase **Web App** configuration for the Join project. The real local config is excluded from Git.
 
-### Run locally
+The public Issue Collector entry point is:
 
-1. Clone the repository:
+```text
+/issue-collector.html
+```
 
-   ```bash
-   git clone https://github.com/SaschaSchmitt-Dev/join.git
-   ```
+## n8n workflows
 
-2. Open the project directory:
+The exported workflows are located in `n8n/`:
 
-   ```bash
-   cd join
-   ```
+- `01-email-intake.json` — Gmail intake, Firebase-based daily limit, AI triage, Firebase ticket creation, stakeholder responses, and mailbox filing
+- `02-status-notifications.json` — status-change notifications to ticket creators
+- `README.md` — technical documentation of both workflows
+- `task-schema.example.json` — example structure for generated Join tasks
 
-3. Start a local static server from the project root. For example, with Python:
+Credentials are configured directly in n8n and are not stored in the repository.
 
-   ```bash
-   python -m http.server 5500
-   ```
+## Verified behavior
 
-4. Open `http://localhost:5500` in your browser.
+The completed implementation was tested for the following flows:
 
-The Firebase project configuration used by the application is located in `scripts/firebaseConfig.js`.
+- stakeholder email intake through the dedicated `+join` address
+- AI-based title, category, priority, description, optional deadline, and subtask generation
+- automatic ticket creation in `Triage`
+- external creator metadata for email-generated tickets
+- internal creator metadata for manually created tickets
+- success responses after ticket creation
+- error/manual-review handling
+- Gmail filing with `erledigt` and `zu bearbeiten`
+- Firebase-backed `x of 10` daily usage display
+- blocking of additional requests when the daily limit is reached
+- status notification emails after board-column changes
+- duplicate-notification protection through `lastNotifiedColumn`
 
-## Code Quality
+## Security
 
-Run the configured CSS linting check with:
+The repository does **not** contain:
+
+- Gmail OAuth tokens or passwords
+- Google Gemini/API credentials
+- Firebase admin or service-account credentials
+- n8n encryption keys
+- `.env` files
+- local n8n credential data
+
+Firebase browser configuration is kept outside Git through `.gitignore` in `scripts/firebaseConfig.js`; `scripts/firebaseConfig.example.js` documents the expected frontend structure.
+
+The current Firebase access model should be reviewed before a public production deployment. Tightening Firebase rules may require authenticated database requests from Join and n8n.
+
+## Code quality
+
+The project uses dedicated JavaScript modules for more complex application logic. The stakeholder landing flow uses semantic HTML5 and `scripts/issueCollector.js` for the live daily-usage display.
+
+CSS linting is available through:
 
 ```bash
 npm install
 npm run lint:css
 ```
 
-## Data and Authentication
+## Legal pages
 
-Registered users authenticate through Firebase Authentication. Tasks and contacts are stored in Firebase Realtime Database. Guest login prepares a separate guest sandbox so the application can be explored without creating an account.
-
-> [!IMPORTANT]
-> Firebase Authentication is not available when testing the application through the GitHub-hosted project. Please use **Guest Log in** to explore and test the application in the isolated guest sandbox.
-
-## Legal Pages
-
-The application includes dedicated privacy policy and legal notice pages, accessible from the login screen and the main navigation.
+Join includes dedicated **Privacy Policy** and **Legal Notice** pages. They are linked from both the login page and the stakeholder landing page.
