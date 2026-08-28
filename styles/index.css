@@ -23,6 +23,10 @@ body {
     padding: 67px 122px 48px 77px;
 }
 
+.public-entry .login-content {
+    visibility: hidden;
+}
+
 .login-header {
     display: flex;
     justify-content: flex-start;
@@ -282,7 +286,6 @@ body {
 
 .login-footer a:hover {
     color: var(--text-link-hover-dark);
-    font-weight: 700;
 }
 
 @media (width <= 900px) {

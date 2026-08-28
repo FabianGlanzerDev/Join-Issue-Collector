@@ -28,7 +28,9 @@
     </header>
 
     <main class="stakeholder-main" aria-labelledby="stakeholderTitle">
-        <a class="stakeholder-back" href="./issue-collector.html" aria-label="Back to role selection">←</a>
+        <a class="stakeholder-back" href="./issue-collector.html" aria-label="Back to role selection">
+            <img src="./assets/icons/arrow-left-line.png" alt="" aria-hidden="true" />
+        </a>
 
         <h1 id="stakeholderTitle">Welcome</h1>
         <p class="stakeholder-mobile-counter" id="mobileRequestCounter" aria-live="polite">
@@ -56,13 +58,15 @@
 
                 <a class="stakeholder-action" id="createRequestButton"
                     href="mailto:fabian.glanzer99+join@gmail.com?subject=Join%20Issue%20Request&amp;body=Please%20describe%20your%20feature%20request%2C%20technical%20task%20or%20bug%20as%20clearly%20as%20possible.%0A%0ARequest%3A%0A%0AOptional%20deadline%3A%0A">
-                    Create Email Request <span aria-hidden="true">✓</span>
+                    <span class="stakeholder-action-label stakeholder-action-label-desktop">Create Email Request</span>
+                    <span class="stakeholder-action-label stakeholder-action-label-mobile">Create request</span>
+                    <img src="./assets/icons/check.webp" alt="" aria-hidden="true" />
                 </a>
             </div>
 
-            <picture class="stakeholder-visual">
+            <picture class="stakeholder-visual stakeholder-visual-original">
                 <source media="(width <= 700px)" srcset="./assets/images/stakeholder-illustration.webp" />
-                <img src="./assets/images/stakeholder-illustration-desktop.webp"
+                <img src="./assets/images/stakeholder-illustration-original.png"
                     alt="Illustration of a person working with a Kanban board" />
             </picture>
         </section>
@@ -82,8 +86,11 @@
                 </p>
 
                 <a class="stakeholder-action"
-                    href="mailto:fabian.glanzer99+join@gmail.com?subject=Join%20Issue%20Request">Send an email <span
-                        aria-hidden="true">✓</span></a>
+                    href="mailto:fabian.glanzer99+join@gmail.com?subject=Join%20Issue%20Request">
+                    <span class="stakeholder-action-label stakeholder-action-label-desktop">Send an email</span>
+                    <span class="stakeholder-action-label stakeholder-action-label-mobile">Create request</span>
+                    <img src="./assets/icons/check.webp" alt="" aria-hidden="true" />
+                </a>
             </div>
 
             <picture class="stakeholder-visual">

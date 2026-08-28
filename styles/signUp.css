@@ -299,7 +299,6 @@ footer a {
 
 footer a:hover {
     color: var(--text-link-hover-dark);
-    font-weight: 700;
 }
 
 .signup-toast {

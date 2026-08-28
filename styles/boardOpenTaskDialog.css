@@ -16,9 +16,10 @@
     flex-direction: column;
     gap: 24px;
     width: min(525px, 100%);
-    max-height: min(931px, calc(100% - 48px));
+    max-height: min(962px, calc(100% - 48px));
     padding: 48px 40px;
     overflow: hidden;
+    overflow-x: hidden;
     background: var(--assets-bg-color);
     border-radius: 30px;
     box-shadow: 0 0 4px var(--shadow-black-16);
@@ -58,6 +59,23 @@
 .open-task-header {
     flex: 0 0 auto;
     justify-content: space-between;
+    gap: 16px;
+    min-width: 0;
+}
+
+.open-task-header-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.open-task-ai-label {
+    display: block;
+    width: 187px;
+    max-width: min(187px, 42vw);
+    height: auto;
+    object-fit: contain;
 }
 
 .open-task-content {
@@ -66,7 +84,10 @@
     flex-direction: column;
     gap: 24px;
     min-height: 0;
+    width: 100%;
+    min-width: 0;
     padding: 0 4px 12px 0;
+    overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
@@ -98,7 +119,9 @@
 }
 
 .open-task-description {
+    max-width: 100%;
     font-size: 1.25rem;
+    overflow-wrap: anywhere;
 }
 
 .open-task-row {
@@ -111,6 +134,67 @@
 
 .open-task-priority {
     gap: 8px;
+}
+
+.open-task-label {
+    flex: 0 0 92px;
+    color: var(--text-secondary);
+}
+
+.open-task-creator-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+}
+
+.creator-badge {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    background: rgb(217 255 112);
+    border-radius: 4px;
+    color: var(--collector-blue, rgb(23 125 168));
+    font-size: 1rem;
+    line-height: 120%;
+}
+
+.creator-badge img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+.creator-name {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 1rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.creator-action {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    color: rgb(23 125 168);
+    font-size: 1rem;
+    white-space: nowrap;
+}
+
+.creator-action img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.creator-action:hover {
+    color: var(--text-link-hover-dark);
 }
 
 .open-task-priority img,
@@ -226,7 +310,6 @@
 
 .open-task-actions button:hover {
     color: var(--text-link-hover-dark);
-    font-weight: 700;
 }
 
 .open-task-action-divider {
@@ -247,31 +330,6 @@
     background: var(--profile-red);
 }
 
-.creator-type,
-.task-source {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 10px;
-    border-radius: 999px;
-    font-weight: 600;
-}
-
-.creator-type.internal,
-.task-source.manual-created {
-    background: var(--ui-light-hover);
-    color: var(--text-secondary);
-}
-
-.creator-type.external,
-.task-source.ai-generated {
-    background: var(--profile-purple);
-    color: var(--text-white);
-}
-
-.creator-type.unknown {
-    background: var(--no-task-placeholder-bg);
-    color: var(--no-task-placeholder-text);
-}
 
 @media (width <= 1024px) and (hover: none) and (pointer: coarse) {
     .task-dialog-backdrop {
@@ -328,71 +386,238 @@
     }
 }
 
-@media (width <= 572px) {
+@media (width <= 640px) {
     .task-dialog-backdrop {
-        padding: 16px;
+        padding: 12px;
     }
 
     .dialog-creator {
         width: 100%;
         max-width: 396px;
-        padding: 32px 24px 0;
+        max-height: calc(100dvh - 24px);
+        gap: 0;
+        padding: 24px 20px 0;
+        border-radius: 24px;
+        overflow: hidden;
     }
 
-    .open-task-actions {
-        width: calc(100% + 48px);
-        margin: 0 -24px;
-        padding: 0 24px;
-    }
-
-    .open-task-subtasks {
-        gap: 8px;
-    }
-
-    .open-task-subtask {
-        padding: 2px 4px;
-    }
-}
-
-@media (width <= 427px) {
-    .task-dialog-backdrop {
-        padding: 8px;
-    }
-}
-
-@media (width <= 411px) {
-    .task-dialog-backdrop {
-        padding: 0;
-    }
-
-    .dialog-creator {
-        max-width: none;
-        height: 100%;
-        max-height: 100%;
-        padding-right: 0;
-        padding-left: 16px;
-        border-radius: 0;
+    .dialog-creator h1 {
+        font-size: clamp(2rem, 9vw, 2.6rem);
+        line-height: 1.08;
+        overflow-wrap: anywhere;
     }
 
     .open-task-header {
-        padding-right: 12px;
+        gap: 10px;
+        padding-bottom: 20px;
+    }
+
+    .open-task-header-main {
+        flex: 1 1 auto;
+        flex-wrap: nowrap;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .open-task-category {
+        flex: 0 0 auto;
+        padding: 4px 12px;
+        font-size: 1rem;
+        line-height: 1.15;
+        white-space: nowrap;
+    }
+
+    .open-task-ai-label {
+        width: 132px;
+        max-width: 38vw;
+        min-width: 0;
+    }
+
+    .open-task-close {
+        flex: 0 0 28px;
+        width: 28px;
+        height: 28px;
+        font-size: 1.45rem;
     }
 
     .open-task-content {
-        padding-right: 12px;
+        gap: 18px;
+        padding: 0 4px 18px 0;
+        font-size: 1rem;
+        line-height: 1.25;
+    }
+
+    .open-task-description {
+        font-size: 1rem;
+        line-height: 1.28;
+    }
+
+    .open-task-row,
+    .open-task-section,
+    .open-task-creator-row {
+        font-size: 1rem;
+    }
+
+    .open-task-row {
+        gap: 10px;
+    }
+
+    .open-task-label {
+        flex: 0 0 82px;
+        white-space: nowrap;
+    }
+
+    .open-task-creator-row {
+        flex-wrap: nowrap;
+        gap: 6px;
+        min-width: 0;
+    }
+
+    .creator-badge {
+        padding: 2px 5px;
+        font-size: 0.875rem;
+        white-space: nowrap;
+    }
+
+    .creator-badge img {
+        width: 14px;
+        height: 14px;
+    }
+
+    .creator-name {
+        flex: 1 1 auto;
+        min-width: 54px;
+        font-size: 0.875rem;
+    }
+
+    .creator-action {
+        flex: 0 0 auto;
+        gap: 3px;
+        margin-left: 0;
+        font-size: 0.875rem;
+    }
+
+    .creator-action img {
+        width: 17px;
+        height: 17px;
+    }
+
+    .open-task-priority img {
+        width: 21px;
+        height: 21px;
+    }
+
+    .open-task-section {
+        gap: 6px;
+    }
+
+    .open-task-contacts {
+        gap: 4px;
+        max-height: 120px;
+    }
+
+    .open-task-contact {
+        gap: 10px;
+        min-height: 34px;
+        padding: 0 4px;
+        font-size: 0.95rem;
+    }
+
+    .open-task-subtasks {
+        gap: 5px;
+        max-height: 96px;
+    }
+
+    .open-task-subtask {
+        min-height: 30px;
+        padding: 2px 4px;
+        font-size: 0.9rem;
     }
 
     .open-task-actions {
-        width: calc(100% + 16px);
-        margin-right: 0;
-        margin-left: -16px;
-        padding-right: 12px;
-        padding-left: 16px;
+        width: calc(100% + 40px);
+        height: 58px;
+        margin: 0 -20px;
+        padding: 0 20px;
+        background: var(--assets-bg-color);
+        box-shadow: 0 -2px 8px var(--shadow-black-08);
+    }
+
+    .open-task-actions button {
+        font-size: 0.95rem;
     }
 }
 
-@media (width <= 360px) {
+@media (width <= 390px) {
     .task-dialog-backdrop {
-        inset: 0;
+        padding: 8px;
+    }
+
+    .dialog-creator {
+        max-height: calc(100dvh - 16px);
+        padding: 20px 16px 0;
+        border-radius: 20px;
+    }
+
+    .dialog-creator h1 {
+        font-size: clamp(1.85rem, 9vw, 2.25rem);
+    }
+
+    .open-task-header {
+        padding-bottom: 16px;
+    }
+
+    .open-task-category {
+        padding-inline: 10px;
+        font-size: 0.92rem;
+    }
+
+    .open-task-ai-label {
+        width: 118px;
+        max-width: 36vw;
+    }
+
+    .open-task-content {
+        gap: 15px;
+        padding-bottom: 14px;
+    }
+
+    .open-task-label {
+        flex-basis: 76px;
+    }
+
+    .creator-badge,
+    .creator-name,
+    .creator-action {
+        font-size: 0.8rem;
+    }
+
+    .creator-action {
+        font-size: 0;
+    }
+
+    .creator-action img {
+        width: 18px;
+        height: 18px;
+    }
+
+    .open-task-actions {
+        width: calc(100% + 32px);
+        margin: 0 -16px;
+        padding: 0 16px;
+    }
+}
+
+@media (width <= 340px) {
+    .open-task-ai-label {
+        width: 108px;
+    }
+
+    .open-task-category {
+        font-size: 0.85rem;
+    }
+
+    .open-task-label {
+        flex-basis: 70px;
     }
 }

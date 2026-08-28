@@ -147,7 +147,17 @@ async function loadContacts() {
     contacts = createContactsArray(data);
     sortContactsByName();
     renderContacts();
-    renderInitialContactDetails();
+    if (!openContactFromQuery()) renderInitialContactDetails();
+}
+
+
+/** Opens a contact requested through ?contact=<firebase-id>. */
+function openContactFromQuery() {
+    const contactId = new URLSearchParams(window.location.search).get("contact");
+    const index = contacts.findIndex((contact) => contact.id === contactId);
+    if (index < 0) return false;
+    showContact(index);
+    return true;
 }
 
 

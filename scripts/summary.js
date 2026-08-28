@@ -10,10 +10,12 @@ const mobileGreetingStorageKey = "joinShowMobileGreeting";
 async function renderSummaryMetrics() {
     const tasks = await getSummaryTasks();
     const urgentTasks = tasks.filter((task) => task.priority === "urgent");
+    const emailRequests = await getEmailRequestCount(tasks);
 
     setSummaryValue("summaryToDo", countTasksByColumn(tasks, "todo"));
     setSummaryValue("summaryDone", countTasksByColumn(tasks, "done"));
     setSummaryValue("summaryUrgent", urgentTasks.length);
+    setSummaryValue("summaryEmailRequests", emailRequests);
     setSummaryValue("summaryUpcomingDeadline", getUpcomingDeadlineText(urgentTasks));
     setSummaryValue("summaryTasksInBoard", tasks.length);
     setSummaryValue("summaryTasksInProgress", countTasksByColumn(tasks, "inprogress"));
@@ -35,6 +37,23 @@ async function getSummaryTasks() {
 
 
 /**
+ * Returns the number of AI-generated stakeholder email requests
+ * in the same task collection that is currently shown in Join.
+ * @param {Array<Object>} scopedTasks - The active user's board tasks.
+ * @returns {number} The number of email-generated AI tickets.
+ */
+function getEmailRequestCount(scopedTasks) {
+    return countEmailRequests(scopedTasks);
+}
+
+
+/** Counts AI-generated tickets created through the email collector. */
+function countEmailRequests(tasks) {
+    return tasks.filter((task) => task?.source === "email" && task?.aiGenerated === true).length;
+}
+
+
+/**
  * Counts tasks in one column.
  * @param {Array} tasks - The tasks.
  * @param {string} column - The column name.
@@ -51,12 +70,29 @@ function countTasksByColumn(tasks, column) {
  * @returns {string} The deadline text.
  */
 function getUpcomingDeadlineText(tasks) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const upcomingDeadline = tasks
         .map((task) => task.dueDate)
-        .filter(Boolean)
+        .filter((dateString) => isUpcomingSummaryDate(dateString, today))
         .sort()[0];
 
     return upcomingDeadline ? formatSummaryDate(upcomingDeadline) : "No deadline";
+}
+
+
+/**
+ * Checks whether a stored deadline is today or in the future.
+ * @param {string} dateString - The YYYY-MM-DD deadline.
+ * @param {Date} today - Today at local midnight.
+ * @returns {boolean} True for a valid upcoming date.
+ */
+function isUpcomingSummaryDate(dateString, today) {
+    if (!dateString) return false;
+
+    const date = new Date(`${dateString}T00:00:00`);
+    return !Number.isNaN(date.getTime()) && date >= today;
 }
 
 

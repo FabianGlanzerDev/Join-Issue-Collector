@@ -141,13 +141,13 @@ function getOpenTaskView(task) {
 function getTaskCreatorView(task) {
     const type = getTaskCreatorType(task.creatorType);
     const creator = getTaskCreatorDisplay(task);
+    const action = getTaskCreatorAction(task, type.className);
 
     return {
-        creator: escapeBoardHtml(creator),
-        creatorType: type.label,
-        creatorTypeClass: type.className,
-        sourceLabel: task.aiGenerated === true ? "AI generated" : "Created in Join",
-        sourceClass: task.aiGenerated === true ? "ai-generated" : "manual-created"
+        creator: escapeBoardHtml(creator), creatorType: type.label,
+        creatorTypeClass: type.className, creatorTypeIcon: type.icon,
+        creatorActionHref: escapeBoardHtml(action.href), creatorActionLabel: action.label,
+        creatorActionIcon: action.icon, aiGenerated: task.aiGenerated === true
     };
 }
 
@@ -161,8 +161,8 @@ function getTaskCreatorDisplay(task) {
     const name = String(task.creatorName || "").trim();
     const email = String(task.creatorEmail || "").trim();
 
-    if (name && email) return `${name} · ${email}`;
-    return name || email || "Not specified";
+    if (name) return name;
+    return email || "Not specified";
 }
 
 
@@ -173,9 +173,40 @@ function getTaskCreatorDisplay(task) {
  */
 function getTaskCreatorType(creatorType) {
     const type = normalizeText(creatorType);
-    if (["external", "extern"].includes(type)) return { label: "External", className: "external" };
-    if (["internal", "member"].includes(type)) return { label: "Internal", className: "internal" };
-    return { label: "Not specified", className: "unknown" };
+    if (["external", "extern"].includes(type)) return { label: "Extern", className: "external", icon: "external-globe.svg" };
+    if (["internal", "member"].includes(type)) return { label: "Member", className: "internal", icon: "stakeholder.svg" };
+    return { label: "Unknown", className: "unknown", icon: "profile-link-icon.svg" };
+}
+
+
+/** Returns the Figma creator action for external and internal creators. */
+function getTaskCreatorAction(task, creatorType) {
+    if (creatorType === "external") return getExternalCreatorAction(task.creatorEmail);
+    if (creatorType === "internal") return getInternalCreatorAction(task.creatorEmail);
+    return { href: "", label: "", icon: "" };
+}
+
+
+/** Returns the email action for an external stakeholder. */
+function getExternalCreatorAction(email) {
+    const value = String(email || "").trim();
+    return value ? { href: `mailto:${value}`, label: "E-mail", icon: "send-email-icon.svg" } : { href: "", label: "", icon: "" };
+}
+
+
+/** Returns the matching Join contact/profile action for an internal member. */
+function getInternalCreatorAction(email) {
+    const contactId = getCreatorContactId(email);
+    const href = contactId ? `./contacts.html?contact=${encodeURIComponent(contactId)}` : "./contacts.html";
+    return { href, label: "Profil", icon: "profile-link-icon.svg" };
+}
+
+
+/** Finds the contact created for a Join member by email address. */
+function getCreatorContactId(email) {
+    const value = normalizeText(email);
+    const entry = Object.entries(boardContacts).find(([, contact]) => normalizeText(contact?.email) === value);
+    return entry?.[0] || "";
 }
 
 

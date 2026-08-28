@@ -36,7 +36,7 @@ function isProtectedPage(currentPage) {
  */
 function redirectLoggedOutUser(currentPage) {
     if (isProtectedPage(currentPage) && !getActiveUser()) {
-        window.location.replace("../index.html");
+        window.location.replace("../index.html?view=login");
         return true;
     }
 

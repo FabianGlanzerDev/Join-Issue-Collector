@@ -229,19 +229,26 @@ function clearError() {
 
 
 const introLayer = document.querySelector('.intro-layer');
+const memberLoginRequested = new URLSearchParams(window.location.search).get('view') === 'login';
 
 
-/**
- * Finishes the intro and reveals the complete login page.
- */
-function finishLoginIntro() {
-    document.body.classList.remove('intro-running');
+/** Reveals the member login without replaying the public entry flow. */
+function showMemberLogin() {
+    document.body.classList.remove('intro-running', 'public-entry');
     introLayer?.remove();
 }
 
 
-if (!introLayer || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    finishLoginIntro();
+/** Opens the Issue Collector role selection after the Join intro. */
+function openIssueCollector() {
+    window.location.replace('./issue-collector.html');
+}
+
+
+if (memberLoginRequested) {
+    showMemberLogin();
+} else if (!introLayer || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    openIssueCollector();
 } else {
-    introLayer.addEventListener('animationend', finishLoginIntro, { once: true });
+    introLayer.addEventListener('animationend', openIssueCollector, { once: true });
 }

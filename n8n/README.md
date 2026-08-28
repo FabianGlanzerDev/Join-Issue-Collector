@@ -120,7 +120,7 @@ The workflow is not limited to `aiGenerated: true` tickets.
 
 ### Baseline and duplicate protection
 
-A ticket without `lastNotifiedColumn` first receives a baseline. No status email is sent for this initial state.
+Newly created Join and email tickets initialize `lastNotifiedColumn` with `triage`, so the first real move out of Triage can be detected immediately. Older tickets without `lastNotifiedColumn` still receive a baseline on their first Workflow 02 run, and no status email is sent for that initial baseline.
 
 A notification is sent only when:
 

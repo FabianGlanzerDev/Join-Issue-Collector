@@ -183,6 +183,7 @@ function getManualTaskMetadata() {
         creatorType: "internal",
         aiGenerated: false,
         source: "join",
+        lastNotifiedColumn: "triage",
         createdAt: timestamp,
         updatedAt: timestamp
     };

@@ -146,7 +146,8 @@
       "id": "38d0b555-cc7d-4d43-bfb3-13676e771628",
       "name": "AI Ticket Triage",
       "retryOnFail": true,
-      "waitBetweenTries": 3000
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -164,13 +165,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const intake = $('Check Daily Limit').item.json;\nlet output = $json.output ?? $json;\n\nif (typeof output === 'string') {\n  try {\n    output = JSON.parse(output);\n  } catch {\n    output = {};\n  }\n}\n\nconst allowedCategories = ['Technical Task', 'User Story', 'Bug Request'];\nconst allowedPriorities = ['urgent', 'medium', 'low'];\nconst title = String(output.title || '').trim();\nconst description = String(output.description || '').trim();\nconst category = String(output.category || '').trim();\nconst priority = String(output.priority || '').trim();\nconst dueDate = String(output.dueDate || '').trim();\nconst errors = [];\n\nif (!title) errors.push('ai-title-missing');\nif (!description) errors.push('ai-description-missing');\nif (!allowedCategories.includes(category)) errors.push('ai-category-invalid');\nif (!allowedPriorities.includes(priority)) errors.push('ai-priority-invalid');\nif (dueDate && !/^\\d{4}-\\d{2}-\\d{2}$/.test(dueDate)) errors.push('ai-due-date-invalid');\n\nconst sourceSubtasks = Array.isArray(output.subtasks) ? output.subtasks.slice(0, 6) : [];\nconst subtasks = {};\nlet index = 1;\n\nfor (const entry of sourceSubtasks) {\n  const subtaskTitle = String(entry || '').trim();\n  if (!subtaskTitle) continue;\n  subtasks[`s${String(index).padStart(3, '0')}`] = { title: subtaskTitle, completed: false };\n  index += 1;\n}\n\nconst now = new Date().toISOString();\nconst aiOutputValid = errors.length === 0;\nconst note = 'Dieses Ticket wurde KI-generiert.';\nconst finalDescription = description ? `${description}\\n\\n${note}` : note;\n\nreturn [{\n  json: {\n    ...intake,\n    aiOutputValid,\n    aiValidationErrors: errors,\n    taskCandidate: {\n      title,\n      description: finalDescription,\n      dueDate,\n      priority,\n      category,\n      assignedTo: [],\n      column: 'triage',\n      order: Date.now(),\n      creatorId: '',\n      creatorName: intake.creatorName || '',\n      creatorEmail: intake.creatorEmail,\n      creatorType: 'external',\n      aiGenerated: true,\n      source: 'email',\n      sourceMessageId: intake.sourceMessageId || '',\n      createdAt: now,\n      updatedAt: now,\n      subtasks\n    }\n  }\n}];"
+        "jsCode": "const intake = $('Check Daily Limit').item.json;\nlet output = $json.output ?? $json;\n\nif (typeof output === 'string') {\n  try {\n    output = JSON.parse(output);\n  } catch {\n    output = {};\n  }\n}\n\nconst allowedCategories = ['Technical Task', 'User Story', 'Bug Request'];\nconst allowedPriorities = ['urgent', 'medium', 'low'];\nconst title = String(output.title || '').trim();\nconst description = String(output.description || '').trim();\nconst category = String(output.category || '').trim();\nconst priority = String(output.priority || '').trim();\nconst dueDate = String(output.dueDate || '').trim();\nconst errors = [];\n\nif (!title) errors.push('ai-title-missing');\nif (!description) errors.push('ai-description-missing');\nif (!allowedCategories.includes(category)) errors.push('ai-category-invalid');\nif (!allowedPriorities.includes(priority)) errors.push('ai-priority-invalid');\nif (dueDate && !/^\\d{4}-\\d{2}-\\d{2}$/.test(dueDate)) {\n  errors.push('ai-due-date-invalid');\n}\n\nconst sourceSubtasks = Array.isArray(output.subtasks)\n  ? output.subtasks.slice(0, 6)\n  : [];\n\nconst subtasks = {};\nlet index = 1;\n\nfor (const entry of sourceSubtasks) {\n  const subtaskTitle = String(entry || '').trim();\n\n  if (!subtaskTitle) continue;\n\n  subtasks[`s${String(index).padStart(3, '0')}`] = {\n    title: subtaskTitle,\n    completed: false\n  };\n\n  index += 1;\n}\n\nconst now = new Date().toISOString();\nconst aiOutputValid = errors.length === 0;\nconst note = 'Dieses Ticket wurde KI-generiert.';\nconst finalDescription = description\n  ? `${description}\\n\\n${note}`\n  : note;\n\nreturn [{\n  json: {\n    ...intake,\n    aiOutputValid,\n    aiValidationErrors: errors,\n\n    taskCandidate: {\n      title,\n      description: finalDescription,\n      dueDate,\n      priority,\n      category,\n\n      assignedTo: [],\n\n      column: 'triage',\n      lastNotifiedColumn: 'triage',\n\n      order: Date.now(),\n\n      creatorId: '',\n      creatorName: intake.creatorName || '',\n      creatorEmail: intake.creatorEmail,\n      creatorType: 'external',\n\n      aiGenerated: true,\n      source: 'email',\n      sourceMessageId: intake.sourceMessageId || '',\n\n      createdAt: now,\n      updatedAt: now,\n\n      subtasks\n    }\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1520,
-        480
+        1616,
+        384
       ],
       "id": "62cf3cde-889c-421b-ba25-25787c430f6e",
       "name": "Build Join Task Candidate"
@@ -203,8 +204,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1760,
-        480
+        1792,
+        416
       ],
       "id": "26c17ee8-b362-4f4b-9fcf-c93fb7288180",
       "name": "AI Output Valid?"
@@ -407,9 +408,9 @@
     },
     {
       "parameters": {
-        "sendTo": "={ $('Prepare Limit Email').item.json.creatorEmail }",
-        "subject": "={ $('Prepare Limit Email').item.json.responseSubject }",
-        "message": "={ $('Prepare Limit Email').item.json.responseText }",
+        "sendTo": "={{ $('Prepare Limit Email').item.json.creatorEmail }}",
+        "subject": "={{ $('Prepare Limit Email').item.json.responseSubject }}",
+        "message": "={{ $('Prepare Limit Email').item.json.responseText }}",
         "options": {
           "appendAttribution": false
         }
@@ -492,9 +493,9 @@
     },
     {
       "parameters": {
-        "sendTo": "={ $('Prepare Error Email').item.json.creatorEmail }",
-        "subject": "={ $('Prepare Error Email').item.json.responseSubject }",
-        "message": "={ $('Prepare Error Email').item.json.responseText }",
+        "sendTo": "={{ $('Prepare Error Email').item.json.creatorEmail }}",
+        "subject": "={{ $('Prepare Error Email').item.json.responseSubject }}",
+        "message": "={{ $('Prepare Error Email').item.json.responseText }}",
         "options": {
           "appendAttribution": false
         }
@@ -571,7 +572,7 @@
         "operation": "addLabels",
         "messageId": "={{ $('Gmail Trigger').item.json.id }}",
         "labelIds": [
-          "CHANGE_ME_LABEL_ID_ZU_BEARBEITEN"
+          "Label_8911553464455583777"
         ]
       },
       "type": "n8n-nodes-base.gmail",
@@ -773,6 +774,13 @@
         [
           {
             "node": "Build Join Task Candidate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Processing Failed",
             "type": "main",
             "index": 0
           }
@@ -1143,7 +1151,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "4c294bd8-72bd-4a4e-b4ae-4481f7c50dc6",
+  "versionId": "d8b8978c-d455-47e9-9f21-021701f6d24e",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "41c828d7946f1f4cedd57c4708cd733a7e103664a60525809cf84f31fa72fc32"

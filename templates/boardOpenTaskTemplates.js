@@ -4,22 +4,35 @@
  * @returns {string} The dialog HTML.
  */
 function getOpenTaskDialogTemplate(task) {
+    const aiLabel = task.aiGenerated
+        ? '<img class="open-task-ai-label" src="../assets/icons/ai-generated-ticket.png" alt="AI-generated ticket">'
+        : '';
+    const creatorAction = task.creatorActionHref
+        ? `<a class="creator-action" href="${task.creatorActionHref}"><img src="../assets/icons/${task.creatorActionIcon}" alt="">${task.creatorActionLabel}</a>`
+        : '';
+
     return `
         <div class="task-dialog-backdrop" id="openTaskDialog" role="dialog" aria-modal="true" aria-labelledby="openTaskTitle" tabindex="-1">
             <section class="dialog-creator" data-task-id="${task.id}">
                 <header class="open-task-header">
-                    <span class="open-task-category ${task.categoryClass}">${task.category}</span>
+                    <div class="open-task-header-main">
+                        <span class="open-task-category ${task.categoryClass}">${task.category}</span>
+                        ${aiLabel}
+                    </div>
                     <button class="open-task-close" type="button" aria-label="Close dialog">&times;</button>
                 </header>
                 <div class="open-task-content">
                     <h1 id="openTaskTitle">${task.title}</h1>
                     <p class="open-task-description">${task.description}</p>
-                    <div class="open-task-row open-task-due-date"><span>Due date:</span><span>${task.dueDate}</span></div>
-                    <div class="open-task-row"><span>Priority:</span><span class="open-task-priority">${task.priorityLabel}
+                    <div class="open-task-creator-row">
+                        <span class="open-task-label">Creator:</span>
+                        <span class="creator-badge ${task.creatorTypeClass}"><img src="../assets/icons/${task.creatorTypeIcon}" alt="">${task.creatorType}</span>
+                        <span class="creator-name" title="${task.creator}">${task.creator}</span>
+                        ${creatorAction}
+                    </div>
+                    <div class="open-task-row"><span class="open-task-label">Due date:</span><span>${task.dueDate}</span></div>
+                    <div class="open-task-row"><span class="open-task-label">Priority:</span><span class="open-task-priority">${task.priorityLabel}
                         <img src="../assets/icons/${task.priorityIcon}" alt=""></span></div>
-                    <div class="open-task-row"><span>Creator:</span><span>${task.creator}</span></div>
-                    <div class="open-task-row"><span>Creator type:</span><span class="creator-type ${task.creatorTypeClass}">${task.creatorType}</span></div>
-                    <div class="open-task-row"><span>Source:</span><span class="task-source ${task.sourceClass}">${task.sourceLabel}</span></div>
                     <div class="open-task-section"><span>Assigned To:</span><div class="open-task-contacts">${task.contacts}</div></div>
                     <div class="open-task-section"><span>Subtasks</span><div class="open-task-subtasks">${task.subtasks}</div></div>
                 </div>

@@ -294,12 +294,20 @@
 }
 
 .task-card h3 {
+    display: -webkit-box;
+    overflow: hidden;
     color: var(--text-secondary);
     font-size: 1rem;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
 }
 
 .task-card p {
+    display: -webkit-box;
+    overflow: hidden;
     color: var(--text-card-description);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
 }
 
 .task-category {
@@ -397,7 +405,7 @@
     }
 }
 
-@media (width < 1650px) {
+@media (width < 1240px) {
     .main-content.board-main {
         overflow: hidden auto;
     }
