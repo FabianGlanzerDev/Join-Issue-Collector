@@ -28,7 +28,13 @@
         528
       ],
       "id": "f5903e01-b6fe-4a10-9b00-ab6c58fb3f16",
-      "name": "Gmail Trigger"
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "tbFie27SezJjaV7q",
+          "name": "Gmail account"
+        }
+      }
     },
     {
       "parameters": {
@@ -127,7 +133,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Du bist die KI-Triage für das Kanban-Board \"Join\".\nAnalysiere ausschließlich die folgende Stakeholder-E-Mail und liefere die Felder für ein neues Ticket.\n\nE-Mail:\nAbsender: {{ $json.creatorEmail }}\nName: {{ $json.creatorName }}\nBetreff: {{ $json.subject }}\nEmpfangen: {{ $json.receivedAt }}\nInhalt:\n{{ $json.body }}\n\nRegeln:\n1. title: kurz, eindeutig und passend zum tatsächlichen Inhalt der E-Mail.\n2. description: sachliche Zusammenfassung der Anfrage. Keine Anforderungen oder Fakten erfinden.\n3. category muss exakt einer dieser Werte sein:\n   - Technical Task: technische Implementierung, Wartung, Infrastruktur oder interner technischer Auftrag.\n   - User Story: neues Feature bzw. neuer Nutzerwert oder funktionale Erweiterung.\n   - Bug Request: vorhandene Funktion ist fehlerhaft, defekt oder verhält sich unerwartet.\n4. priority muss exakt urgent, medium oder low sein.\n   - urgent nur bei klarer Dringlichkeit, Blocker, Ausfall, kritischem Fehler, Sicherheitsproblem oder ausdrücklich sofort/ASAP/dringend.\n   - medium für normale Anforderungen ohne besondere Dringlichkeit.\n   - low für kleine, kosmetische oder ausdrücklich nicht dringende Änderungen.\n5. dueDate:\n   - Nur eine Deadline setzen, wenn sie aus der E-Mail hervorgeht.\n   - Relative Angaben wie \"morgen\" anhand des Empfangsdatums auflösen.\n   - Format immer YYYY-MM-DD.\n   - Wenn keine Deadline genannt ist: leerer String \"\".\n   - Niemals eine Deadline erfinden.\n6. subtasks:\n   - Nur ausdrücklich genannte Listen-/Unterpunkte übernehmen.\n   - Keine Subtasks aus normalem Fließtext ableiten.\n   - Maximal 6 Einträge.\n\nAntworte ausschließlich entsprechend dem verbundenen Structured Output Parser.",
+        "text": "=Du bist die KI-Triage für das Kanban-Board \"Join\".\nAnalysiere ausschließlich die folgende Stakeholder-E-Mail und liefere die Felder für ein neues Ticket.\n\nE-Mail:\nAbsender: {{ $json.creatorEmail }}\nName: {{ $json.creatorName }}\nBetreff: {{ $json.subject }}\nEmpfangen: {{ $json.receivedAt }}\nInhalt:\n{{ $json.body }}\n\nRegeln:\n\n1. title\n- Kurz, eindeutig und passend zum tatsächlichen Inhalt der E-Mail.\n- Keine Informationen erfinden.\n\n2. description\n- Sachliche Zusammenfassung der Anfrage.\n- Keine Anforderungen, Ursachen oder Fakten erfinden.\n- Nur Informationen aus der E-Mail verwenden.\n\n3. category\ncategory muss exakt einer dieser Werte sein:\n\n- Technical Task:\n  Technische Implementierung, Wartung, Infrastruktur oder interner technischer Auftrag.\n\n- User Story:\n  Neues Feature, neuer Nutzerwert oder funktionale Erweiterung.\n\n- Bug Request:\n  Eine vorhandene Funktion ist fehlerhaft, defekt oder verhält sich unerwartet.\n\n4. priority\npriority muss exakt einer dieser Werte sein:\n\n- urgent\n- medium\n- low\n\nWICHTIGE PRIORITÄTSREGEL:\nWenn der Absender in der E-Mail ausdrücklich eine Priorität oder Dringlichkeit nennt, hat diese Angabe IMMER Vorrang vor einer eigenen Einschätzung.\n\nExplizite Zuordnung:\n\n- \"dringend\"\n- \"sehr dringend\"\n- \"sofort\"\n- \"ASAP\"\n- \"kritisch\"\n- \"höchste Priorität\"\n- \"Priorität: dringend\"\n- \"Priority: urgent\"\n\n=> immer \"urgent\"\n\n- \"normal\"\n- \"mittel\"\n- \"mittlere Priorität\"\n- \"Priorität: mittel\"\n- \"Priority: medium\"\n\n=> immer \"medium\"\n\n- \"niedrig\"\n- \"nicht dringend\"\n- \"geringe Priorität\"\n- \"Priorität: niedrig\"\n- \"Priority: low\"\n\n=> immer \"low\"\n\nEine ausdrücklich genannte Priorität darf niemals durch eine eigene Einschätzung überschrieben werden.\n\nNur wenn keine Priorität ausdrücklich genannt wurde:\n\n- urgent bei klarer Dringlichkeit, Blocker, Ausfall, kritischem Fehler oder Sicherheitsproblem\n- medium bei normalen Anforderungen ohne besondere Dringlichkeit\n- low bei kleinen, kosmetischen oder ausdrücklich nicht dringenden Änderungen\n\n5. dueDate\n- Nur eine Deadline setzen, wenn sie aus der E-Mail hervorgeht.\n- Relative Angaben wie \"morgen\" anhand des Empfangsdatums auflösen.\n- Format immer YYYY-MM-DD.\n- Wenn keine Deadline genannt ist: leerer String \"\".\n- Niemals eine Deadline erfinden.\n\n6. subtasks\n- Nur ausdrücklich genannte Listen- oder Unterpunkte übernehmen.\n- Keine Subtasks aus normalem Fließtext ableiten.\n- Maximal 6 Einträge.\n\nWICHTIG:\n- Keine Informationen erfinden.\n- Keine zusätzlichen Felder erzeugen.\n- Die erlaubten Werte für category und priority exakt einhalten.\n- Explizite Angaben des Absenders haben Vorrang vor abgeleiteten Einschätzungen.\n\nAntworte ausschließlich entsprechend dem verbundenen Structured Output Parser.",
         "hasOutputParser": true,
         "options": {}
       },
@@ -138,7 +144,9 @@
         480
       ],
       "id": "38d0b555-cc7d-4d43-bfb3-13676e771628",
-      "name": "AI Ticket Triage"
+      "name": "AI Ticket Triage",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000
     },
     {
       "parameters": {
@@ -239,21 +247,6 @@
       ],
       "id": "2907a1b0-b1b1-4c7a-bb2b-68fdf4c75276",
       "name": "Invalid Email Data"
-    },
-    {
-      "parameters": {
-        "content": "## Gmail setup – required before activation\n\nThis workflow now uses **Gmail OAuth2** for intake, response emails and mailbox filing.\n\n1. Connect the same Gmail OAuth2 credential to `Gmail Trigger` and every Gmail node.\n2. In Gmail create these two labels exactly: **erledigt** and **zu bearbeiten**.\n3. Open `Add Gmail Label erledigt` and select your real `erledigt` label.\n4. Open `Add Gmail Label zu bearbeiten` and select your real `zu bearbeiten` label.\n5. Connect the Google Gemini credential to `Google Gemini Chat Model`.\n\nThis repository export contains no credential references, tokens, or passwords.\n\nGmail has labels instead of normal folders. The workflow files a processed mail by adding the target label, removing `INBOX`, and marking the message as read.",
-        "height": 520,
-        "width": 650
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        -592,
-        -352
-      ],
-      "id": "30fa77b0-ee98-46be-9f23-b34a9383fbb9",
-      "name": "Setup Note"
     },
     {
       "parameters": {
@@ -378,7 +371,13 @@
       ],
       "id": "483c973f-00e1-461d-ae89-b87f077f7314",
       "name": "Send Success Email (Gmail)",
-      "webhookId": "9b61530e-258a-4df1-9251-14ffc0254c20"
+      "webhookId": "9b61530e-258a-4df1-9251-14ffc0254c20",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "tbFie27SezJjaV7q",
+          "name": "Gmail account"
+        }
+      }
     },
     {
       "parameters": {
@@ -408,9 +407,9 @@
     },
     {
       "parameters": {
-        "sendTo": "={{ $('Prepare Limit Email').item.json.creatorEmail }}",
-        "subject": "={{ $('Prepare Limit Email').item.json.responseSubject }}",
-        "message": "={{ $('Prepare Limit Email').item.json.responseText }}",
+        "sendTo": "={ $('Prepare Limit Email').item.json.creatorEmail }",
+        "subject": "={ $('Prepare Limit Email').item.json.responseSubject }",
+        "message": "={ $('Prepare Limit Email').item.json.responseText }",
         "options": {
           "appendAttribution": false
         }
@@ -423,7 +422,13 @@
       ],
       "id": "54d96e72-c32f-40e4-acc6-3421fbe38d73",
       "name": "Send Limit Email (Gmail)",
-      "webhookId": "6ffbdc2f-89b2-48e4-ba78-0d2b274b3eab"
+      "webhookId": "6ffbdc2f-89b2-48e4-ba78-0d2b274b3eab",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "tbFie27SezJjaV7q",
+          "name": "Gmail account"
+        }
+      }
     },
     {
       "parameters": {
@@ -487,9 +492,9 @@
     },
     {
       "parameters": {
-        "sendTo": "={{ $('Prepare Error Email').item.json.creatorEmail }}",
-        "subject": "={{ $('Prepare Error Email').item.json.responseSubject }}",
-        "message": "={{ $('Prepare Error Email').item.json.responseText }}",
+        "sendTo": "={ $('Prepare Error Email').item.json.creatorEmail }",
+        "subject": "={ $('Prepare Error Email').item.json.responseSubject }",
+        "message": "={ $('Prepare Error Email').item.json.responseText }",
         "options": {
           "appendAttribution": false
         }
@@ -502,7 +507,13 @@
       ],
       "id": "8caaf37d-dffa-4fcd-ad77-edaafd296bd0",
       "name": "Send Error Email (Gmail)",
-      "webhookId": "f127850e-6f74-4b43-bf64-0ae77e116574"
+      "webhookId": "f127850e-6f74-4b43-bf64-0ae77e116574",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "tbFie27SezJjaV7q",
+          "name": "Gmail account"
+        }
+      }
     },
     {
       "parameters": {
@@ -547,6 +558,12 @@
       "id": "88cb178a-7a68-4f2e-831a-dc35244e95dd",
       "name": "Add Gmail Label erledigt",
       "webhookId": "f2bf1845-8ed6-49cf-8e6e-7d404da1b1d8",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "tbFie27SezJjaV7q",
+          "name": "Gmail account"
+        }
+      },
       "notes": "After import, connect Gmail OAuth2 and select the real Gmail label \"erledigt\" in Label Names or IDs."
     },
     {
@@ -554,7 +571,7 @@
         "operation": "addLabels",
         "messageId": "={{ $('Gmail Trigger').item.json.id }}",
         "labelIds": [
-          "Label_8911553464455583777"
+          "CHANGE_ME_LABEL_ID_ZU_BEARBEITEN"
         ]
       },
       "type": "n8n-nodes-base.gmail",
@@ -566,6 +583,12 @@
       "id": "65053171-ec32-4fdd-84f0-c3fa143b334f",
       "name": "Add Gmail Label zu bearbeiten",
       "webhookId": "8768580c-874b-433c-a0c5-2a004e0312ec",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "tbFie27SezJjaV7q",
+          "name": "Gmail account"
+        }
+      },
       "notes": "After import, connect Gmail OAuth2 and select the real Gmail label \"zu bearbeiten\" in Label Names or IDs."
     },
     {
@@ -584,7 +607,13 @@
       ],
       "id": "3a35f7b9-52d7-4dbf-ae13-4032d86bcd92",
       "name": "Remove from Gmail Inbox",
-      "webhookId": "7b347f13-38e9-412e-b0ff-e9cdbf659fa6"
+      "webhookId": "7b347f13-38e9-412e-b0ff-e9cdbf659fa6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "tbFie27SezJjaV7q",
+          "name": "Gmail account"
+        }
+      }
     },
     {
       "parameters": {
@@ -599,7 +628,13 @@
       ],
       "id": "bcc6c062-88cc-496c-be24-757b053df032",
       "name": "Mark Gmail Message Read",
-      "webhookId": "c07fa8e4-eb40-49c5-bb0e-1d6476dacbf1"
+      "webhookId": "c07fa8e4-eb40-49c5-bb0e-1d6476dacbf1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "tbFie27SezJjaV7q",
+          "name": "Gmail account"
+        }
+      }
     },
     {
       "parameters": {
@@ -613,7 +648,13 @@
         688
       ],
       "id": "ecffcb19-a40f-46b1-a27c-cb2d954ffa51",
-      "name": "Google Gemini Chat Model"
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iVyvxuCXHKuCTEr8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
     },
     {
       "parameters": {
@@ -631,7 +672,13 @@
       ],
       "id": "809fa695-e67e-49c8-ab54-05c2420f5a9f",
       "name": "Gmail-Label zu bearbeiten entfernen",
-      "webhookId": "1b8f25ca-9ddb-4a4c-ac4a-0adb1f9323ff"
+      "webhookId": "1b8f25ca-9ddb-4a4c-ac4a-0adb1f9323ff",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "tbFie27SezJjaV7q",
+          "name": "Gmail account"
+        }
+      }
     },
     {
       "parameters": {
@@ -1096,7 +1143,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "e65fd96e-9838-4547-9742-77a40b352d7f",
+  "versionId": "4c294bd8-72bd-4a4e-b4ae-4481f7c50dc6",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "41c828d7946f1f4cedd57c4708cd733a7e103664a60525809cf84f31fa72fc32"

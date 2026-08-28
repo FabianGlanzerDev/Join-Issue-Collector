@@ -136,7 +136,7 @@
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "const statusNames = {\n  triage: 'Triage',\n  todo: 'To do',\n  'to-do': 'To do',\n  inprogress: 'In progress',\n  'in-progress': 'In progress',\n  'in_progress': 'In progress',\n  awaitfeedback: 'Await feedback',\n  'await-feedback': 'Await feedback',\n  'await_feedback': 'Await feedback',\n  done: 'Done',\n};\n\nconst oldStatus =\n  statusNames[$json.lastNotifiedColumn] ?? $json.lastNotifiedColumn;\n\nconst newStatus =\n  statusNames[$json.column] ?? $json.column;\n\nreturn {\n  json: {\n    ...$json,\n\n    mailSubject:\n      `Join: Statusänderung bei „${$json.title}“`,\n\n    mailText:\n`Hallo ${$json.creatorName || 'Hallo'},\n\nder Status deines Tickets wurde geändert.\n\nTitel: ${$json.title}\nVorheriger Status: ${oldStatus}\nNeuer Status: ${newStatus}\nTicket-ID: ${$json.taskId}\n\nDu wirst bei weiteren Statusänderungen automatisch informiert.\n\nDies ist eine automatisch generierte Benachrichtigung.`\n  }\n};"
+        "jsCode": "const statusNames = {\n  triage: 'Triage',\n\n  todo: 'To do',\n  'to-do': 'To do',\n\n  inprogress: 'In progress',\n  'in-progress': 'In progress',\n  in_progress: 'In progress',\n\n  awaitfeedback: 'Await feedback',\n  'await-feedback': 'Await feedback',\n  await_feedback: 'Await feedback',\n\n  done: 'Done',\n};\n\nconst oldStatus =\n  statusNames[$json.lastNotifiedColumn] ?? $json.lastNotifiedColumn;\n\nconst newStatus =\n  statusNames[$json.column] ?? $json.column;\n\nreturn {\n  json: {\n    ...$json,\n\n    mailSubject:\n      `Join: Statusänderung bei „${$json.title}“`,\n\n    mailText:\n`Hallo ${$json.creatorName || 'Hallo'},\n\nder Status deines Tickets wurde geändert.\n\nTitel: ${$json.title}\nVorheriger Status: ${oldStatus}\nNeuer Status: ${newStatus}\nTicket-ID: ${$json.taskId}\n\nDu wirst bei weiteren Statusänderungen automatisch informiert.\n\nDies ist eine automatisch generierte Benachrichtigung.`\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -163,7 +163,13 @@
       ],
       "id": "143737d7-b589-43a3-a145-4319aef57c24",
       "name": "Status-E-Mail senden",
-      "webhookId": "632aea57-7d0b-494d-beb7-9551575b2da9"
+      "webhookId": "632aea57-7d0b-494d-beb7-9551575b2da9",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "tbFie27SezJjaV7q",
+          "name": "Gmail account"
+        }
+      }
     },
     {
       "parameters": {
@@ -276,7 +282,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "8762660c-153c-4cc4-ac75-2efe6728b6ae",
+  "versionId": "f65cf23b-5127-4672-a0f4-af69b25d16f6",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "41c828d7946f1f4cedd57c4708cd733a7e103664a60525809cf84f31fa72fc32"
